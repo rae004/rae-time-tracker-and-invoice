@@ -2,8 +2,18 @@
 
 FROM python:3.13-slim
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Install system dependencies including WeasyPrint requirements
+RUN apt-get update && apt-get install -y \
+    curl \
+    # WeasyPrint dependencies
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf-2.0-0 \
+    libffi-dev \
+    shared-mime-info \
+    fontconfig \
+    fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/

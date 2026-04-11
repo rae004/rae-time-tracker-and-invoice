@@ -65,6 +65,14 @@ export function Navbar() {
           </li>
           <li>
             <Link
+              to="/invoices"
+              className={location.pathname.startsWith('/invoices') ? 'active' : ''}
+            >
+              Invoices
+            </Link>
+          </li>
+          <li>
+            <Link
               to="/settings"
               className={isActive('/settings') ? 'active' : ''}
             >

@@ -162,6 +162,92 @@ export interface UserProfileUpdate {
   payment_instructions?: string;
 }
 
+// Invoice
+export interface InvoiceLineItem {
+  id: string;
+  invoice_id: string;
+  time_entry_id: string | null;
+  project_name: string;
+  work_date: string;
+  hours: string;
+  amount: string;
+  sort_order: number;
+}
+
+export interface InvoiceLineItemCreate {
+  time_entry_id?: string | null;
+  project_name: string;
+  work_date: string;
+  hours: string;
+  amount: string;
+  sort_order?: number;
+}
+
+export interface Invoice {
+  id: string;
+  invoice_number: number;
+  client_id: string;
+  period_start: string;
+  period_end: string;
+  hourly_rate: string;
+  subtotal: string;
+  tax_rate: string;
+  other_charges: string;
+  total: string;
+  status: "draft" | "finalized";
+  pdf_path: string | null;
+  created_at: string;
+  line_items: InvoiceLineItem[];
+}
+
+export interface InvoiceWithClient extends Invoice {
+  client_name: string | null;
+}
+
+export interface InvoiceCreate {
+  client_id: string;
+  period_start: string;
+  period_end: string;
+  hourly_rate: string;
+  tax_rate?: string;
+  other_charges?: string;
+  line_items?: InvoiceLineItemCreate[];
+}
+
+export interface InvoiceUpdate {
+  period_start?: string;
+  period_end?: string;
+  hourly_rate?: string;
+  tax_rate?: string;
+  other_charges?: string;
+  line_items?: InvoiceLineItemCreate[];
+}
+
+export interface InvoiceListResponse {
+  invoices: InvoiceWithClient[];
+  total: number;
+}
+
+export interface InvoicePreviewRequest {
+  client_id: string;
+  period_start: string;
+  period_end: string;
+  exclude_entry_ids?: string[];
+}
+
+export interface InvoicePreview {
+  client_id: string;
+  client_name: string;
+  period_start: string;
+  period_end: string;
+  hourly_rate: string;
+  line_items: InvoiceLineItemCreate[];
+  subtotal: string;
+  tax_rate: string;
+  other_charges: string;
+  total: string;
+}
+
 // Helper functions
 export function formatDuration(seconds: number | null): string {
   if (seconds === null || seconds === 0) return "0:00:00";
