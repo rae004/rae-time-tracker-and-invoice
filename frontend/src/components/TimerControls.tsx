@@ -4,7 +4,7 @@ import { useCreateTimeEntry, useStopTimer } from "../hooks/useTimeEntries";
 import { useActiveProjects } from "../hooks/useProjects";
 import { useCategoryTags } from "../hooks/useCategoryTags";
 import { useToast } from "../contexts/ToastContext";
-import { formatDuration } from "../types";
+import { formatDuration } from "../utils/formatters";
 
 export function TimerControls() {
   const { showToast } = useToast();

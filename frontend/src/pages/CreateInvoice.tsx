@@ -4,19 +4,7 @@ import { useClients } from "../hooks/useClients";
 import { useInvoicePreview, useCreateInvoice } from "../hooks/useInvoices";
 import { useToast } from "../contexts/ToastContext";
 import type { InvoicePreview, InvoiceLineItemCreate } from "../types";
-
-function formatCurrency(amount: string | number): string {
-  const num = typeof amount === "string" ? parseFloat(amount) : amount;
-  return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+import { formatCurrency, formatDate, toDateString } from "../utils/formatters";
 
 function getDefaultDateRange(): { start: string; end: string } {
   const today = new Date();
@@ -32,8 +20,8 @@ function getDefaultDateRange(): { start: string; end: string } {
   lastSaturday.setDate(lastFriday.getDate() - 6);
 
   return {
-    start: lastSaturday.toISOString().split("T")[0],
-    end: lastFriday.toISOString().split("T")[0],
+    start: toDateString(lastSaturday),
+    end: toDateString(lastFriday),
   };
 }
 

@@ -2,18 +2,7 @@ import { Link } from "react-router-dom";
 import { useInvoices, useDeleteInvoice, getInvoicePdfUrl } from "../hooks/useInvoices";
 import { useToast } from "../contexts/ToastContext";
 import type { InvoiceWithClient } from "../types";
-
-function formatCurrency(amount: string): string {
-  return `$${parseFloat(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+import { formatCurrency, formatDate } from "../utils/formatters";
 
 export function Invoices() {
   const { showToast } = useToast();

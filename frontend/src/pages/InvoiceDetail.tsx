@@ -2,26 +2,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useInvoice, useFinalizeInvoice, useDeleteInvoice, getInvoicePdfUrl } from "../hooks/useInvoices";
 import { useClient } from "../hooks/useClients";
 import { useToast } from "../contexts/ToastContext";
-
-function formatCurrency(amount: string): string {
-  return `$${parseFloat(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatShortDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+import { formatCurrency, formatDateLong, formatDate } from "../utils/formatters";
 
 export function InvoiceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -153,7 +134,7 @@ export function InvoiceDetail() {
             </div>
             <div className="text-right text-sm">
               <p className="text-base-content/70">
-                Created: {formatShortDate(invoice.created_at)}
+                Created: {formatDate(invoice.created_at)}
               </p>
             </div>
           </div>
@@ -195,7 +176,7 @@ export function InvoiceDetail() {
           {/* Period */}
           <div className="bg-base-200 rounded-lg p-4 mb-6">
             <span className="font-semibold">Period: </span>
-            {formatDate(invoice.period_start)} - {formatDate(invoice.period_end)}
+            {formatDateLong(invoice.period_start)} - {formatDateLong(invoice.period_end)}
           </div>
 
           {/* Line Items */}
@@ -213,7 +194,7 @@ export function InvoiceDetail() {
                 {invoice.line_items.map((item) => (
                   <tr key={item.id}>
                     <td>{item.project_name}</td>
-                    <td>{formatShortDate(item.work_date)}</td>
+                    <td>{formatDate(item.work_date)}</td>
                     <td className="text-center">{parseFloat(item.hours).toFixed(2)}</td>
                     <td className="text-right font-medium">{formatCurrency(item.amount)}</td>
                   </tr>

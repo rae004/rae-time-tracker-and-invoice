@@ -7,7 +7,7 @@ import { useActiveProjects } from "../hooks/useProjects";
 import { useCategoryTags } from "../hooks/useCategoryTags";
 import { useToast } from "../contexts/ToastContext";
 import type { TimeEntryWithProject } from "../types";
-import { formatDuration, formatTime, toLocalDatetime, fromLocalDatetime } from "../types";
+import { formatDuration, formatTime, toLocalDatetime, fromLocalDatetime } from "../utils/formatters";
 
 interface TimeEntryCardProps {
   entry: TimeEntryWithProject;

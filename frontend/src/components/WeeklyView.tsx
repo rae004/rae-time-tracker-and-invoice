@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useWeeklyEntries } from "../hooks/useTimeEntries";
 import { TimeEntryCard } from "./TimeEntryCard";
-import { formatDuration, formatDate } from "../types";
+import { formatDuration, formatDateWeekday, formatWeekdayName, formatMonth, toDateString } from "../utils/formatters";
 
 // Get Saturday of the current week
 function getWeekStart(date: Date): Date {
@@ -18,9 +18,9 @@ function formatWeekRange(weekStart: Date): string {
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekEnd.getDate() + 6);
 
-  const startMonth = weekStart.toLocaleDateString("en-US", { month: "short" });
+  const startMonth = formatMonth(weekStart);
   const startDay = weekStart.getDate();
-  const endMonth = weekEnd.toLocaleDateString("en-US", { month: "short" });
+  const endMonth = formatMonth(weekEnd);
   const endDay = weekEnd.getDate();
   const year = weekEnd.getFullYear();
 
@@ -39,7 +39,7 @@ export function WeeklyView() {
     return start;
   }, [weekOffset]);
 
-  const weekStartString = currentWeekStart.toISOString().split("T")[0];
+  const weekStartString = toDateString(currentWeekStart);
 
   const { data, isLoading, error } = useWeeklyEntries(weekStartString);
 
@@ -163,12 +163,10 @@ export function WeeklyView() {
               <div className="flex items-center justify-between border-b border-base-300 pb-2">
                 <div>
                   <span className="font-medium">
-                    {new Date(day.date + "T00:00:00").toLocaleDateString("en-US", {
-                      weekday: "long",
-                    })}
+                    {formatWeekdayName(day.date)}
                   </span>
                   <span className="text-base-content/50 ml-2">
-                    {formatDate(day.date)}
+                    {formatDateWeekday(day.date)}
                   </span>
                 </div>
                 <div className="font-mono text-sm">
