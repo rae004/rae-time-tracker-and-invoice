@@ -280,3 +280,13 @@ export function formatTime(dateString: string): string {
     hour12: true,
   });
 }
+
+export function toLocalDatetime(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+export function fromLocalDatetime(local: string): string {
+  return new Date(local).toISOString();
+}

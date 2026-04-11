@@ -7,7 +7,7 @@ import { useActiveProjects } from "../hooks/useProjects";
 import { useCategoryTags } from "../hooks/useCategoryTags";
 import { useToast } from "../contexts/ToastContext";
 import type { TimeEntryWithProject } from "../types";
-import { formatDuration, formatTime } from "../types";
+import { formatDuration, formatTime, toLocalDatetime, fromLocalDatetime } from "../types";
 
 interface TimeEntryCardProps {
   entry: TimeEntryWithProject;
@@ -19,6 +19,10 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(entry.name);
   const [editProjectId, setEditProjectId] = useState(entry.project_id);
+  const [editStartTime, setEditStartTime] = useState(toLocalDatetime(entry.start_time));
+  const [editEndTime, setEditEndTime] = useState(
+    entry.end_time ? toLocalDatetime(entry.end_time) : ""
+  );
   const [editTagIds, setEditTagIds] = useState<string[]>(
     entry.tags.map((t) => t.id)
   );
@@ -38,6 +42,8 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
         data: {
           name: editName,
           project_id: editProjectId,
+          start_time: fromLocalDatetime(editStartTime),
+          end_time: editEndTime ? fromLocalDatetime(editEndTime) : undefined,
           tag_ids: editTagIds,
         },
       });
@@ -94,6 +100,29 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
               ))}
             </select>
 
+            {/* Start / End time */}
+            <div className="grid grid-cols-2 gap-2">
+              <label className="form-control">
+                <span className="label-text text-xs">Start Time</span>
+                <input
+                  type="datetime-local"
+                  className="input input-bordered input-sm w-full"
+                  value={editStartTime}
+                  onChange={(e) => setEditStartTime(e.target.value)}
+                />
+              </label>
+              <label className="form-control">
+                <span className="label-text text-xs">End Time</span>
+                <input
+                  type="datetime-local"
+                  className="input input-bordered input-sm w-full"
+                  value={editEndTime}
+                  onChange={(e) => setEditEndTime(e.target.value)}
+                  disabled={entry.is_running}
+                />
+              </label>
+            </div>
+
             {/* Tags */}
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-1">
@@ -126,6 +155,8 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
                   setIsEditing(false);
                   setEditName(entry.name);
                   setEditProjectId(entry.project_id);
+                  setEditStartTime(toLocalDatetime(entry.start_time));
+                  setEditEndTime(entry.end_time ? toLocalDatetime(entry.end_time) : "");
                   setEditTagIds(entry.tags.map((t) => t.id));
                 }}
               >
