@@ -127,7 +127,8 @@ describe("WeeklyView - Navigation", () => {
     const prevButton = screen.getAllByRole("button")[0];
     await user.click(prevButton);
 
-    const lastCall = mockUseWeeklyEntries.mock.calls.at(-1);
+    const calls = mockUseWeeklyEntries.mock.calls;
+    const lastCall = calls[calls.length - 1];
     expect(lastCall?.[0]).not.toBe(initialCallArg);
   });
 
