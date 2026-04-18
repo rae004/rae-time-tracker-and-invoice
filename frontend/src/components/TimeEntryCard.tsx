@@ -7,7 +7,7 @@ import { useActiveProjects } from "../hooks/useProjects";
 import { useCategoryTags } from "../hooks/useCategoryTags";
 import { useToast } from "../contexts/ToastContext";
 import type { TimeEntryWithProject } from "../types";
-import { formatDuration, formatTime, toLocalDatetime, fromLocalDatetime } from "../utils/formatters";
+import { formatDuration, formatTime, toLocalDatetime, toLocalMs, fromLocalDatetime } from "../utils/formatters";
 
 interface TimeEntryCardProps {
   entry: TimeEntryWithProject;
@@ -20,8 +20,12 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
   const [editName, setEditName] = useState(entry.name);
   const [editProjectId, setEditProjectId] = useState(entry.project_id ?? "");
   const [editStartTime, setEditStartTime] = useState(toLocalDatetime(entry.start_time));
+  const [editStartMs, setEditStartMs] = useState(toLocalMs(entry.start_time));
   const [editEndTime, setEditEndTime] = useState(
     entry.end_time ? toLocalDatetime(entry.end_time) : ""
+  );
+  const [editEndMs, setEditEndMs] = useState(
+    entry.end_time ? toLocalMs(entry.end_time) : 0
   );
   const [editTagIds, setEditTagIds] = useState<string[]>(
     entry.tags.map((t) => t.id)
@@ -36,7 +40,12 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
   const tags = tagsData?.tags ?? [];
 
   const initStartTime = toLocalDatetime(entry.start_time);
+  const initStartMs = toLocalMs(entry.start_time);
   const initEndTime = entry.end_time ? toLocalDatetime(entry.end_time) : "";
+  const initEndMs = entry.end_time ? toLocalMs(entry.end_time) : 0;
+
+  const startChanged = editStartTime !== initStartTime || editStartMs !== initStartMs;
+  const endChanged = editEndTime !== initEndTime || editEndMs !== initEndMs;
 
   const handleSave = async () => {
     try {
@@ -45,10 +54,8 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
         data: {
           name: editName,
           project_id: editProjectId || undefined,
-          // Only send datetime fields if the user actually changed them,
-          // to avoid seconds-truncation drift from datetime-local inputs
-          start_time: editStartTime !== initStartTime ? fromLocalDatetime(editStartTime) : undefined,
-          end_time: editEndTime && editEndTime !== initEndTime ? fromLocalDatetime(editEndTime) : undefined,
+          start_time: startChanged ? fromLocalDatetime(editStartTime, editStartMs) : undefined,
+          end_time: editEndTime && endChanged ? fromLocalDatetime(editEndTime, editEndMs) : undefined,
           tag_ids: editTagIds,
         },
       });
@@ -108,25 +115,50 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
 
             {/* Start / End time */}
             <div className="grid grid-cols-2 gap-2">
-              <label className="form-control">
+              <div className="form-control">
                 <span className="label-text text-xs">Start Time</span>
                 <input
                   type="datetime-local"
+                  step="1"
                   className="input input-bordered input-sm w-full"
                   value={editStartTime}
                   onChange={(e) => setEditStartTime(e.target.value)}
                 />
-              </label>
-              <label className="form-control">
+                <div className="flex items-center gap-1 mt-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="999"
+                    className="input input-bordered input-xs w-20"
+                    value={editStartMs}
+                    onChange={(e) => setEditStartMs(Math.min(999, Math.max(0, parseInt(e.target.value) || 0)))}
+                  />
+                  <span className="text-xs text-base-content/50">ms</span>
+                </div>
+              </div>
+              <div className="form-control">
                 <span className="label-text text-xs">End Time</span>
                 <input
                   type="datetime-local"
+                  step="1"
                   className="input input-bordered input-sm w-full"
                   value={editEndTime}
                   onChange={(e) => setEditEndTime(e.target.value)}
                   disabled={entry.is_running}
                 />
-              </label>
+                <div className="flex items-center gap-1 mt-1">
+                  <input
+                    type="number"
+                    min="0"
+                    max="999"
+                    className="input input-bordered input-xs w-20"
+                    value={editEndMs}
+                    onChange={(e) => setEditEndMs(Math.min(999, Math.max(0, parseInt(e.target.value) || 0)))}
+                    disabled={entry.is_running}
+                  />
+                  <span className="text-xs text-base-content/50">ms</span>
+                </div>
+              </div>
             </div>
 
             {/* Tags */}
@@ -162,7 +194,9 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
                   setEditName(entry.name);
                   setEditProjectId(entry.project_id ?? "");
                   setEditStartTime(toLocalDatetime(entry.start_time));
+                  setEditStartMs(toLocalMs(entry.start_time));
                   setEditEndTime(entry.end_time ? toLocalDatetime(entry.end_time) : "");
+                  setEditEndMs(entry.end_time ? toLocalMs(entry.end_time) : 0);
                   setEditTagIds(entry.tags.map((t) => t.id));
                 }}
               >

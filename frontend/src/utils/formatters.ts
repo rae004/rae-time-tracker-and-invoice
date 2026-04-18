@@ -74,16 +74,23 @@ export function formatCurrency(amount: string | number): string {
   return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-/** Convert ISO datetime to datetime-local input value: "2026-01-05T09:30" */
+/** Convert ISO datetime to datetime-local input value with seconds: "2026-01-05T09:30:45" */
 export function toLocalDatetime(iso: string): string {
   const d = new Date(iso);
   const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
-/** Convert datetime-local input value to ISO string */
-export function fromLocalDatetime(local: string): string {
-  return new Date(local).toISOString();
+/** Extract milliseconds from an ISO datetime string */
+export function toLocalMs(iso: string): number {
+  return new Date(iso).getMilliseconds();
+}
+
+/** Convert datetime-local input value + milliseconds to ISO string */
+export function fromLocalDatetime(local: string, ms: number = 0): string {
+  const d = new Date(local);
+  d.setMilliseconds(ms);
+  return d.toISOString();
 }
 
 /** Convert Date to "YYYY-MM-DD" date string */
