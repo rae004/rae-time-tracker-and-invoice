@@ -38,7 +38,8 @@ def get_time_entries_for_invoice(
                 Project.client_id == client_id,
                 TimeEntry.end_time.isnot(None),  # Only completed entries
                 TimeEntry.start_time >= period_start,
-                TimeEntry.start_time < date(period_end.year, period_end.month, period_end.day + 1)
+                TimeEntry.start_time
+                < date(period_end.year, period_end.month, period_end.day + 1)
                 if period_end.day < 28
                 else period_end,  # Handle end of month
             )
@@ -60,17 +61,21 @@ def create_line_items_from_entries(
     line_items = []
 
     for i, entry in enumerate(entries):
-        hours = Decimal(str(entry.duration_hours or 0))
+        hours = (Decimal(str(entry.duration_ms or 0)) / Decimal("3600000")).quantize(
+            Decimal("0.0001")
+        )
         amount = hours * hourly_rate
 
-        line_items.append({
-            "time_entry_id": entry.id,
-            "project_name": entry.project.name,
-            "work_date": entry.start_time.date(),
-            "hours": hours,
-            "amount": amount,
-            "sort_order": i,
-        })
+        line_items.append(
+            {
+                "time_entry_id": entry.id,
+                "project_name": entry.project.name,
+                "work_date": entry.start_time.date(),
+                "hours": hours,
+                "amount": amount,
+                "sort_order": i,
+            }
+        )
 
     return line_items
 

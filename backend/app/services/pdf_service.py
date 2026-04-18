@@ -5,7 +5,6 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.orm import Session
-from weasyprint import HTML
 
 from app.models import Invoice, UserProfile
 
@@ -58,7 +57,9 @@ def generate_invoice_pdf(session: Session, invoice: Invoice) -> str:
         "invoice": invoice,
         "profile": profile,
         "client": invoice.client,
-        "line_items": sorted(invoice.line_items, key=lambda x: (x.work_date, x.sort_order)),
+        "line_items": sorted(
+            invoice.line_items, key=lambda x: (x.work_date, x.sort_order)
+        ),
         "format_currency": format_currency,
         "format_hours": format_hours,
         "format_tax_rate": format_tax_rate,
@@ -71,6 +72,8 @@ def generate_invoice_pdf(session: Session, invoice: Invoice) -> str:
 
     # Generate PDF
     pdf_path = output_dir / f"invoice_{invoice.invoice_number}.pdf"
+    from weasyprint import HTML
+
     HTML(string=html_content).write_pdf(str(pdf_path))
 
     return str(pdf_path)

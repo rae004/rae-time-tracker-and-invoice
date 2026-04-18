@@ -3,7 +3,7 @@
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 
 from sqlalchemy import Date, DateTime, ForeignKey, Integer, Numeric, String, func
 from sqlalchemy.dialects.postgresql import UUID
@@ -12,7 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.extensions import Base
 
 
-class InvoiceStatus(str, Enum):
+class InvoiceStatus(StrEnum):
     """Invoice status enum."""
 
     DRAFT = "draft"
@@ -74,9 +74,7 @@ class Invoice(Base):
 
     def calculate_totals(self) -> None:
         """Calculate subtotal and total from line items."""
-        self.subtotal = sum(
-            (item.amount for item in self.line_items), Decimal("0.00")
-        )
+        self.subtotal = sum((item.amount for item in self.line_items), Decimal("0.00"))
         tax_amount = self.subtotal * self.tax_rate
         self.total = self.subtotal + tax_amount + self.other_charges
 

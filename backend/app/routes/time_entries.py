@@ -1,6 +1,6 @@
 """API routes for Time Entry management."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID
 
 from flask import Blueprint, jsonify, request
@@ -14,7 +14,6 @@ from app.schemas import (
     TimeEntryListResponse,
     TimeEntryResponse,
     TimeEntryUpdate,
-    TimeEntryWithProjectResponse,
     WeeklyEntriesResponse,
 )
 from app.services import time_entry_service
@@ -30,7 +29,7 @@ def entry_to_response(entry: TimeEntry) -> TimeEntryResponse:
         name=entry.name,
         start_time=entry.start_time,
         end_time=entry.end_time,
-        duration_seconds=entry.duration_seconds,
+        duration_ms=entry.duration_ms,
         is_running=entry.is_running,
         created_at=entry.created_at,
         updated_at=entry.updated_at,
@@ -115,17 +114,20 @@ def create_time_entry():
 
     session = db.get_session()
     try:
-        # Verify project exists
-        project = session.query(Project).filter(Project.id == data.project_id).first()
-        if not project:
-            return jsonify({"error": "Project not found"}), 404
+        # Verify project exists if provided
+        if data.project_id is not None:
+            project = (
+                session.query(Project).filter(Project.id == data.project_id).first()
+            )
+            if not project:
+                return jsonify({"error": "Project not found"}), 404
 
         if data.end_time is None:
             # Starting a timer
             entry = time_entry_service.start_timer(
                 session,
-                project_id=data.project_id,
                 name=data.name,
+                project_id=data.project_id,
                 tag_ids=data.tag_ids,
                 start_time=data.start_time,
             )
@@ -134,12 +136,12 @@ def create_time_entry():
             entry = TimeEntry(
                 project_id=data.project_id,
                 name=data.name,
-                start_time=data.start_time or datetime.utcnow(),
+                start_time=data.start_time or datetime.now(UTC),
                 end_time=data.end_time,
             )
             # Calculate duration
-            entry.duration_seconds = int(
-                (entry.end_time - entry.start_time).total_seconds()
+            entry.duration_ms = int(
+                (entry.end_time - entry.start_time).total_seconds() * 1000
             )
             # Add tags
             if data.tag_ids:
@@ -190,7 +192,7 @@ def get_weekly_entries():
             except ValueError:
                 return jsonify({"error": "Invalid week_start format"}), 400
         else:
-            reference_date = datetime.utcnow()
+            reference_date = datetime.now(UTC)
 
         week_start, week_end = time_entry_service.get_week_boundaries(reference_date)
 
@@ -268,8 +270,8 @@ def update_time_entry(entry_id: UUID):
         if data.end_time is not None:
             entry.end_time = data.end_time
             # Recalculate duration
-            entry.duration_seconds = int(
-                (entry.end_time - entry.start_time).total_seconds()
+            entry.duration_ms = int(
+                (entry.end_time - entry.start_time).total_seconds() * 1000
             )
         if data.tag_ids is not None:
             tags = (

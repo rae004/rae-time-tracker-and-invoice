@@ -22,8 +22,8 @@ class CategoryTagBase(BaseModel):
             raise ValueError("Color must be 7 characters (e.g., #RRGGBB)")
         try:
             int(v[1:], 16)
-        except ValueError:
-            raise ValueError("Color must be a valid hex color code")
+        except ValueError as err:
+            raise ValueError("Color must be a valid hex color code") from err
         return v.upper()
 
 
@@ -51,8 +51,8 @@ class CategoryTagUpdate(BaseModel):
             raise ValueError("Color must be 7 characters (e.g., #RRGGBB)")
         try:
             int(v[1:], 16)
-        except ValueError:
-            raise ValueError("Color must be a valid hex color code")
+        except ValueError as err:
+            raise ValueError("Color must be a valid hex color code") from err
         return v.upper()
 
 

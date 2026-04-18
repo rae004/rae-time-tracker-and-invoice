@@ -5,7 +5,8 @@ Revises:
 Create Date: 2025-04-05
 
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
@@ -13,9 +14,9 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = "001_initial"
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -148,7 +149,9 @@ def upgrade() -> None:
         sa.Column("email", sa.String(length=255), nullable=False),
         sa.Column("phone", sa.String(length=50), nullable=False),
         sa.Column("payment_instructions", sa.Text(), nullable=False),
-        sa.Column("next_invoice_number", sa.Integer(), nullable=False, server_default="1"),
+        sa.Column(
+            "next_invoice_number", sa.Integer(), nullable=False, server_default="1"
+        ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

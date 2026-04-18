@@ -47,6 +47,20 @@ export function WeeklyView() {
   const goToNextWeek = () => setWeekOffset((prev) => prev + 1);
   const goToCurrentWeek = () => setWeekOffset(0);
 
+  const weeklyTotalMs = data?.weekly_total ?? 0;
+
+  const sortedDays = useMemo(() => {
+    if (!data?.entries_by_day) return [];
+
+    return Object.keys(data.entries_by_day)
+      .sort((a, b) => b.localeCompare(a))
+      .map((date) => ({
+        date,
+        entries: data.entries_by_day[date],
+        totalMs: data.daily_totals[date] ?? 0,
+      }));
+  }, [data?.entries_by_day, data?.daily_totals]);
+
   if (error) {
     return (
       <div className="alert alert-error">
@@ -54,24 +68,6 @@ export function WeeklyView() {
       </div>
     );
   }
-
-  // Convert API response format to sorted array of days
-  const weeklyTotalSeconds = useMemo(() => {
-    return Math.round((data?.weekly_total ?? 0) * 3600); // Convert hours to seconds
-  }, [data?.weekly_total]);
-
-  const sortedDays = useMemo(() => {
-    if (!data?.entries_by_day) return [];
-
-    // Get all dates and sort them (most recent first)
-    return Object.keys(data.entries_by_day)
-      .sort((a, b) => b.localeCompare(a))
-      .map((date) => ({
-        date,
-        entries: data.entries_by_day[date],
-        totalSeconds: Math.round((data.daily_totals[date] ?? 0) * 3600),
-      }));
-  }, [data?.entries_by_day, data?.daily_totals]);
 
   return (
     <div className="space-y-4">
@@ -136,7 +132,7 @@ export function WeeklyView() {
         <div className="text-right">
           <span className="text-sm text-base-content/70">Week Total</span>
           <div className="font-mono text-xl font-bold">
-            {formatDuration(weeklyTotalSeconds)}
+            {formatDuration(weeklyTotalMs)}
           </div>
         </div>
       </div>
@@ -170,7 +166,7 @@ export function WeeklyView() {
                   </span>
                 </div>
                 <div className="font-mono text-sm">
-                  {formatDuration(day.totalSeconds)}
+                  {formatDuration(day.totalMs)}
                 </div>
               </div>
 

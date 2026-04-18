@@ -15,9 +15,11 @@ class TimeEntryBase(BaseModel):
     project_id: UUID
 
 
-class TimeEntryCreate(TimeEntryBase):
+class TimeEntryCreate(BaseModel):
     """Schema for creating a TimeEntry."""
 
+    name: str = Field(default="Untitled", max_length=500)
+    project_id: UUID | None = None
     start_time: datetime | None = None  # If None, use current time
     end_time: datetime | None = None
     tag_ids: list[UUID] = Field(default_factory=list)
@@ -39,11 +41,11 @@ class TimeEntryResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
-    project_id: UUID
+    project_id: UUID | None
     name: str
     start_time: datetime
     end_time: datetime | None
-    duration_seconds: int | None
+    duration_ms: int | None
     is_running: bool
     created_at: datetime
     updated_at: datetime
@@ -75,6 +77,8 @@ class WeeklyEntriesResponse(BaseModel):
 
     week_start: datetime
     week_end: datetime
-    entries_by_day: dict[str, list[TimeEntryWithProjectResponse]]  # date string -> entries
-    daily_totals: dict[str, float]  # date string -> hours
-    weekly_total: float
+    entries_by_day: dict[
+        str, list[TimeEntryWithProjectResponse]
+    ]  # date string -> entries
+    daily_totals: dict[str, int]  # date string -> milliseconds
+    weekly_total: int  # total milliseconds

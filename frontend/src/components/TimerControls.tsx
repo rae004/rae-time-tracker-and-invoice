@@ -24,22 +24,14 @@ export function TimerControls() {
   const tags = tagsData?.tags ?? [];
 
   const handleStart = async () => {
-    if (!selectedProjectId) {
-      showToast("Please select a project", "warning");
-      return;
-    }
-    if (!taskName.trim()) {
-      showToast("Please enter a task name", "warning");
-      return;
-    }
-
     try {
       await createEntry.mutateAsync({
-        project_id: selectedProjectId,
-        name: taskName.trim(),
+        project_id: selectedProjectId || undefined,
+        name: taskName.trim() || undefined,
         tag_ids: selectedTagIds,
       });
       setTaskName("");
+      setSelectedProjectId("");
       setSelectedTagIds([]);
       invalidate();
       showToast("Timer started!", "success");
@@ -78,7 +70,9 @@ export function TimerControls() {
               <div>
                 <h2 className="text-lg font-semibold">{activeEntry.name}</h2>
                 <p className="text-sm text-base-content/70">
-                  {projects.find((p) => p.id === activeEntry.project_id)?.name}
+                  {activeEntry.project_id
+                    ? projects.find((p) => p.id === activeEntry.project_id)?.name
+                    : <span className="italic">No project assigned</span>}
                 </p>
               </div>
               <div className="text-right">
@@ -203,7 +197,7 @@ export function TimerControls() {
             <button
               className="btn btn-primary btn-lg"
               onClick={handleStart}
-              disabled={createEntry.isPending || !selectedProjectId || !taskName.trim()}
+              disabled={createEntry.isPending}
             >
               {createEntry.isPending ? (
                 <span className="loading loading-spinner"></span>

@@ -115,6 +115,38 @@ rae-time-tracker/
 └── README.md
 ```
 
+## Linting & Formatting
+
+### Backend (Ruff)
+
+```bash
+cd backend
+
+# Lint
+uv run ruff check .
+
+# Lint and auto-fix
+uv run ruff check . --fix
+
+# Format
+uv run ruff format .
+
+# Check formatting without changes
+uv run ruff format . --check
+```
+
+### Frontend (ESLint & TypeScript)
+
+```bash
+cd frontend
+
+# Lint
+npm run lint
+
+# Type-check
+npx tsc --noEmit
+```
+
 ## Testing
 
 ### Backend Tests

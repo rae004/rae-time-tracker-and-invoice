@@ -19,7 +19,7 @@ export const api = {
   get: <T>(endpoint: string): Promise<T> =>
     fetch(`${API_BASE}${endpoint}`).then(handleResponse<T>),
 
-  post: <T>(endpoint: string, data: unknown): Promise<T> =>
+  post: <T>(endpoint: string, data?: unknown): Promise<T> =>
     fetch(`${API_BASE}${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

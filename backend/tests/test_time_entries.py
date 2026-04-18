@@ -1,10 +1,6 @@
 """Tests for time entries API endpoints."""
 
-from datetime import datetime, timedelta
-
-import pytest
-
-from app.models import TimeEntry
+from datetime import UTC, datetime, timedelta
 
 
 class TestTimeEntryEndpoints:
@@ -36,8 +32,8 @@ class TestTimeEntryEndpoints:
 
     def test_create_completed_time_entry(self, client, session, sample_project):
         """Create a time entry with end_time (completed entry)."""
-        start = datetime.utcnow() - timedelta(hours=2)
-        end = datetime.utcnow() - timedelta(hours=1)
+        start = datetime.now(UTC) - timedelta(hours=2)
+        end = datetime.now(UTC) - timedelta(hours=1)
         payload = {
             "name": "Completed task",
             "project_id": str(sample_project.id),
@@ -51,7 +47,7 @@ class TestTimeEntryEndpoints:
         assert data["name"] == "Completed task"
         assert data["end_time"] is not None
         assert data["is_running"] is False
-        assert data["duration_seconds"] == 3600  # 1 hour
+        assert data["duration_ms"] == 3600000  # 1 hour in ms
 
     def test_create_time_entry_with_tags(
         self, client, session, sample_project, sample_category_tag
@@ -111,13 +107,13 @@ class TestTimeEntryEndpoints:
         data = response.get_json()
         assert data["end_time"] is not None
         assert data["is_running"] is False
-        assert data["duration_seconds"] is not None
+        assert data["duration_ms"] is not None
 
     def test_stop_timer_already_stopped(self, client, session, sample_project):
         """Stop a timer that's already stopped returns error."""
         # Create completed entry
-        start = datetime.utcnow() - timedelta(hours=1)
-        end = datetime.utcnow()
+        start = datetime.now(UTC) - timedelta(hours=1)
+        end = datetime.now(UTC)
         payload = {
             "name": "Already stopped",
             "project_id": str(sample_project.id),
@@ -193,8 +189,8 @@ class TestTimeEntryEndpoints:
     def test_get_weekly_entries(self, client, session, sample_project):
         """Get weekly entries."""
         # Create a completed entry for today
-        start = datetime.utcnow() - timedelta(hours=2)
-        end = datetime.utcnow() - timedelta(hours=1)
+        start = datetime.now(UTC) - timedelta(hours=2)
+        end = datetime.now(UTC) - timedelta(hours=1)
         payload = {
             "name": "Weekly task",
             "project_id": str(sample_project.id),
@@ -212,7 +208,7 @@ class TestTimeEntryEndpoints:
         assert "entries_by_day" in data
         assert "daily_totals" in data
         assert "weekly_total" in data
-        assert data["weekly_total"] >= 1.0  # At least 1 hour
+        assert data["weekly_total"] >= 3600000  # At least 1 hour in ms
 
     def test_filter_by_project(self, client, session, sample_project):
         """Filter time entries by project."""
@@ -223,9 +219,7 @@ class TestTimeEntryEndpoints:
         }
         client.post("/api/time-entries", json=payload)
 
-        response = client.get(
-            f"/api/time-entries?project_id={sample_project.id}"
-        )
+        response = client.get(f"/api/time-entries?project_id={sample_project.id}")
 
         assert response.status_code == 200
         data = response.get_json()

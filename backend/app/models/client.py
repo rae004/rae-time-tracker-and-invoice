@@ -55,5 +55,5 @@ class Client(Base):
 
 
 # Import at the bottom to avoid circular imports
-from app.models.project import Project  # noqa: E402, F401
 from app.models.invoice import Invoice  # noqa: E402, F401
+from app.models.project import Project  # noqa: E402, F401

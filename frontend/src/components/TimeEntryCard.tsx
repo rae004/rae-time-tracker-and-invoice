@@ -18,7 +18,7 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
   const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(entry.name);
-  const [editProjectId, setEditProjectId] = useState(entry.project_id);
+  const [editProjectId, setEditProjectId] = useState(entry.project_id ?? "");
   const [editStartTime, setEditStartTime] = useState(toLocalDatetime(entry.start_time));
   const [editEndTime, setEditEndTime] = useState(
     entry.end_time ? toLocalDatetime(entry.end_time) : ""
@@ -35,15 +35,20 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
   const projects = projectsData?.projects ?? [];
   const tags = tagsData?.tags ?? [];
 
+  const initStartTime = toLocalDatetime(entry.start_time);
+  const initEndTime = entry.end_time ? toLocalDatetime(entry.end_time) : "";
+
   const handleSave = async () => {
     try {
       await updateEntry.mutateAsync({
         id: entry.id,
         data: {
           name: editName,
-          project_id: editProjectId,
-          start_time: fromLocalDatetime(editStartTime),
-          end_time: editEndTime ? fromLocalDatetime(editEndTime) : undefined,
+          project_id: editProjectId || undefined,
+          // Only send datetime fields if the user actually changed them,
+          // to avoid seconds-truncation drift from datetime-local inputs
+          start_time: editStartTime !== initStartTime ? fromLocalDatetime(editStartTime) : undefined,
+          end_time: editEndTime && editEndTime !== initEndTime ? fromLocalDatetime(editEndTime) : undefined,
           tag_ids: editTagIds,
         },
       });
@@ -93,6 +98,7 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
               value={editProjectId}
               onChange={(e) => setEditProjectId(e.target.value)}
             >
+              <option value="">No project</option>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
                   {project.name}
@@ -154,7 +160,7 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
                 onClick={() => {
                   setIsEditing(false);
                   setEditName(entry.name);
-                  setEditProjectId(entry.project_id);
+                  setEditProjectId(entry.project_id ?? "");
                   setEditStartTime(toLocalDatetime(entry.start_time));
                   setEditEndTime(entry.end_time ? toLocalDatetime(entry.end_time) : "");
                   setEditTagIds(entry.tags.map((t) => t.id));
@@ -188,7 +194,7 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
           <div className="flex-1 min-w-0">
             <h3 className="font-medium truncate">{entry.name}</h3>
             <p className="text-sm text-base-content/70">
-              {entry.project_name}
+              {entry.project_name || <span className="italic">No project</span>}
               {entry.client_name && (
                 <span className="text-base-content/50">
                   {" "}
@@ -221,7 +227,7 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
           <div className="flex items-center gap-2">
             <div className="text-right">
               <div className="font-mono font-semibold">
-                {formatDuration(entry.duration_seconds)}
+                {formatDuration(entry.duration_ms)}
               </div>
               {entry.is_running && (
                 <span className="badge badge-success badge-xs">Running</span>

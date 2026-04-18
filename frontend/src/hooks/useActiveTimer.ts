@@ -31,15 +31,14 @@ export function useRunningDuration(entry: TimeEntry | null) {
 
   useEffect(() => {
     if (!entry || !entry.is_running) {
-      setDuration(entry?.duration_seconds ?? 0);
+      setDuration(entry?.duration_ms ?? 0);
       return;
     }
 
     // Calculate initial duration
     const startTime = new Date(entry.start_time).getTime();
     const calculateDuration = () => {
-      const now = Date.now();
-      return Math.floor((now - startTime) / 1000);
+      return Date.now() - startTime;
     };
 
     setDuration(calculateDuration());
@@ -47,7 +46,7 @@ export function useRunningDuration(entry: TimeEntry | null) {
     // Update every second
     const interval = setInterval(() => {
       setDuration(calculateDuration());
-    }, 1000);
+    }, 50);
 
     return () => clearInterval(interval);
   }, [entry]);

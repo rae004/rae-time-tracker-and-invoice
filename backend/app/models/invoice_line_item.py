@@ -29,7 +29,7 @@ class InvoiceLineItem(Base):
         String(255), nullable=False
     )  # Snapshot of project name
     work_date: Mapped[date] = mapped_column(Date, nullable=False)
-    hours: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
+    hours: Mapped[Decimal] = mapped_column(Numeric(10, 4), nullable=False)
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 

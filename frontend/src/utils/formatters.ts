@@ -1,16 +1,27 @@
-export function formatDuration(seconds: number | null): string {
-  if (seconds === null || seconds === 0) return "0:00:00";
+export function formatDuration(ms: number | null): string {
+  if (ms === null || ms === 0) return "0:00:00.000";
 
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
+  const totalSeconds = Math.floor(ms / 1000);
+  const milliseconds = ms % 1000;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
 
-  return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}.${milliseconds.toString().padStart(3, "0")}`;
+}
+
+/** Parse a date string safely, appending T00:00:00 to date-only strings
+ *  to prevent UTC midnight from rolling back a day in local time. */
+function parseDate(dateString: string): Date {
+  if (!dateString.includes("T")) {
+    return new Date(dateString + "T00:00:00");
+  }
+  return new Date(dateString);
 }
 
 /** Short date with year: "Jan 5, 2026" */
 export function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
+  return parseDate(dateString).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -19,26 +30,25 @@ export function formatDate(dateString: string): string {
 
 /** Long date with year: "January 5, 2026" */
 export function formatDateLong(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
+  return parseDate(dateString).toLocaleDateString("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
 }
 
-/** Weekday + short date without year: "Mon, Jan 5" */
+/** Weekday + short date without year: "Sat, Apr 11" */
 export function formatDateWeekday(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
+  return parseDate(dateString).toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
   });
 }
 
-/** Weekday name only: "Monday" */
+/** Weekday name only: "Saturday" */
 export function formatWeekdayName(dateString: string): string {
-  return new Date(dateString + "T00:00:00").toLocaleDateString("en-US", {
+  return parseDate(dateString).toLocaleDateString("en-US", {
     weekday: "long",
   });
 }

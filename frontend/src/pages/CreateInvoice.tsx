@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useClients } from "../hooks/useClients";
 import { useInvoicePreview, useCreateInvoice } from "../hooks/useInvoices";
 import { useToast } from "../contexts/ToastContext";
-import type { InvoicePreview, InvoiceLineItemCreate } from "../types";
+import type { InvoicePreview } from "../types";
 import { formatCurrency, formatDate, toDateString } from "../utils/formatters";
 
 function getDefaultDateRange(): { start: string; end: string } {
@@ -43,10 +43,12 @@ export function CreateInvoice() {
 
   const clients = clientsData?.clients ?? [];
 
+  const { mutate: loadPreview } = previewInvoice;
+
   // Load preview when parameters change
   useEffect(() => {
     if (clientId && periodStart && periodEnd) {
-      previewInvoice.mutate(
+      loadPreview(
         {
           client_id: clientId,
           period_start: periodStart,
@@ -65,7 +67,7 @@ export function CreateInvoice() {
     } else {
       setPreview(null);
     }
-  }, [clientId, periodStart, periodEnd, excludedEntries]);
+  }, [clientId, periodStart, periodEnd, excludedEntries, loadPreview]);
 
   const toggleEntryExclusion = (entryId: string) => {
     setExcludedEntries((prev) => {
@@ -98,7 +100,7 @@ export function CreateInvoice() {
     return { subtotal, tax, total };
   };
 
-  const handleCreate = async (finalize: boolean = false) => {
+  const handleCreate = async () => {
     if (!preview) return;
 
     const activeItems = preview.line_items.filter(
@@ -268,7 +270,7 @@ export function CreateInvoice() {
                 <div className="card-actions justify-end mt-4">
                   <button
                     className="btn btn-primary"
-                    onClick={() => handleCreate(false)}
+                    onClick={() => handleCreate()}
                     disabled={!preview || preview.line_items.length === 0 || createInvoice.isPending}
                   >
                     {createInvoice.isPending ? (

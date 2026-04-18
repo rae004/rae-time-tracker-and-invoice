@@ -1,17 +1,17 @@
 """Business logic for time entry operations."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
-from app.models import CategoryTag, Project, TimeEntry
+from app.models import CategoryTag, TimeEntry
 
 
 def utc_now() -> datetime:
     """Get current UTC time as a timezone-aware datetime."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def get_active_timer(session: Session) -> TimeEntry | None:
@@ -21,8 +21,8 @@ def get_active_timer(session: Session) -> TimeEntry | None:
 
 def start_timer(
     session: Session,
-    project_id: UUID,
-    name: str,
+    name: str = "Untitled",
+    project_id: UUID | None = None,
     tag_ids: list[UUID] | None = None,
     start_time: datetime | None = None,
 ) -> TimeEntry:
@@ -67,12 +67,14 @@ def stop_timer(session: Session, entry: TimeEntry) -> TimeEntry:
         # start_time is aware, now is naive - make start_time naive
         start_time = start_time.replace(tzinfo=None)
 
-    entry.duration_seconds = int((now - start_time).total_seconds())
+    entry.duration_ms = int((now - start_time).total_seconds() * 1000)
     session.flush()
     return entry
 
 
-def get_week_boundaries(reference_date: datetime | None = None) -> tuple[datetime, datetime]:
+def get_week_boundaries(
+    reference_date: datetime | None = None,
+) -> tuple[datetime, datetime]:
     """Get Saturday 00:00 to Friday 23:59:59 boundaries for the week containing reference_date.
 
     Week runs Saturday through Friday.
@@ -88,17 +90,16 @@ def get_week_boundaries(reference_date: datetime | None = None) -> tuple[datetim
     # If today is Sunday (6), days_since_saturday = 1
     # If today is Monday (0), days_since_saturday = 2
     # etc.
-    if day_of_week >= 5:  # Saturday or Sunday
-        days_since_saturday = day_of_week - 5
-    else:  # Monday through Friday
-        days_since_saturday = day_of_week + 2
+    days_since_saturday = day_of_week - 5 if day_of_week >= 5 else day_of_week + 2
 
     # Week start (Saturday 00:00:00)
     week_start = reference_date.replace(hour=0, minute=0, second=0, microsecond=0)
     week_start = week_start - timedelta(days=days_since_saturday)
 
     # Week end (Friday 23:59:59.999999)
-    week_end = week_start + timedelta(days=6, hours=23, minutes=59, seconds=59, microseconds=999999)
+    week_end = week_start + timedelta(
+        days=6, hours=23, minutes=59, seconds=59, microseconds=999999
+    )
 
     return week_start, week_end
 
@@ -138,17 +139,17 @@ def get_entries_grouped_by_day(
     return grouped
 
 
-def calculate_daily_totals(grouped_entries: dict[str, list[TimeEntry]]) -> dict[str, float]:
-    """Calculate total hours for each day."""
-    totals: dict[str, float] = {}
+def calculate_daily_totals(
+    grouped_entries: dict[str, list[TimeEntry]],
+) -> dict[str, int]:
+    """Calculate total milliseconds for each day."""
+    totals: dict[str, int] = {}
 
     for date_str, entries in grouped_entries.items():
-        total_seconds = sum(
-            (e.duration_seconds or 0) for e in entries if e.duration_seconds is not None
-        )
-        # For running timers, calculate current duration
+        total_ms = 0
         for entry in entries:
             if entry.end_time is None:
+                # Running timer — calculate live duration
                 now = utc_now()
                 start_time = entry.start_time
                 # Handle timezone-aware vs naive datetime comparison
@@ -156,14 +157,16 @@ def calculate_daily_totals(grouped_entries: dict[str, list[TimeEntry]]) -> dict[
                     now = now.replace(tzinfo=None)
                 elif start_time.tzinfo is not None and now.tzinfo is None:
                     start_time = start_time.replace(tzinfo=None)
-                running_seconds = int((now - start_time).total_seconds())
-                total_seconds += running_seconds
+                total_ms += int((now - start_time).total_seconds() * 1000)
+            elif entry.duration_ms is not None:
+                # Completed entry — use stored duration
+                total_ms += entry.duration_ms
 
-        totals[date_str] = round(total_seconds / 3600, 2)
+        totals[date_str] = total_ms
 
     return totals
 
 
-def calculate_weekly_total(daily_totals: dict[str, float]) -> float:
-    """Calculate total hours for the week."""
-    return round(sum(daily_totals.values()), 2)
+def calculate_weekly_total(daily_totals: dict[str, int]) -> int:
+    """Calculate total milliseconds for the week."""
+    return sum(daily_totals.values())

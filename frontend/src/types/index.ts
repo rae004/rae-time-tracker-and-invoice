@@ -84,11 +84,11 @@ export interface CategoryTagListResponse {
 // Time Entry
 export interface TimeEntry {
   id: string;
-  project_id: string;
+  project_id: string | null;
   name: string;
   start_time: string;
   end_time: string | null;
-  duration_seconds: number | null;
+  duration_ms: number | null;
   is_running: boolean;
   created_at: string;
   updated_at: string;
@@ -101,8 +101,8 @@ export interface TimeEntryWithProject extends TimeEntry {
 }
 
 export interface TimeEntryCreate {
-  project_id: string;
-  name: string;
+  project_id?: string | null;
+  name?: string;
   start_time?: string | null;
   end_time?: string | null;
   tag_ids?: string[];
