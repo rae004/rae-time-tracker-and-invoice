@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #{{ invoice.invoice_number }}</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #333;
+            background: #fff;
+        }
+
+        /* Page setup for PDF */
+        @page {
+            size: letter;
+            margin: 0.75in;
+        }
+
+        .invoice {
+            max-width: 8.5in;
+            margin: 0 auto;
+        }
+
+        /* Header section */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #B8973B;
+        }
+
+        .invoice-title {
+            font-size: 32pt;
+            font-weight: 700;
+            color: #B8973B;
+            letter-spacing: 2px;
+        }
+
+        .invoice-number {
+            font-size: 14pt;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .contractor-info {
+            text-align: right;
+            font-size: 10pt;
+            color: #555;
+        }
+
+        .contractor-info .name {
+            font-size: 14pt;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        /* Info row with Bill To, For, Hourly Rate */
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+
+        .info-box {
+            flex: 1;
+        }
+
+        .info-box.rate {
+            flex: 0.5;
+            text-align: right;
+        }
+
+        .info-label {
+            font-size: 10pt;
+            font-weight: 700;
+            color: #B8973B;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .info-content {
+            font-size: 10pt;
+            color: #333;
+        }
+
+        .info-content .company-name {
+            font-weight: 600;
+            font-size: 11pt;
+        }
+
+        .rate-amount {
+            font-size: 18pt;
+            font-weight: 700;
+            color: #333;
+        }
+
+        /* Period info */
+        .period-info {
+            background: #f9f9f9;
+            padding: 12px 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+
+        .period-info span {
+            font-weight: 600;
+        }
+
+        /* Line items table */
+        .line-items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+
+        .line-items thead th {
+            background: #f5f5f5;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 10pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .line-items thead th:last-child {
+            text-align: right;
+        }
+
+        .line-items thead th.hours-col {
+            text-align: center;
+        }
+
+        .line-items tbody td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 10pt;
+        }
+
+        .line-items tbody td:last-child {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .line-items tbody td.hours-col {
+            text-align: center;
+        }
+
+        .line-items tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        /* Totals section */
+        .totals-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 30px;
+        }
+
+        .totals-table {
+            width: 280px;
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .totals-row.total {
+            border-bottom: none;
+            border-top: 2px solid #B8973B;
+            padding-top: 12px;
+            margin-top: 5px;
+        }
+
+        .totals-label {
+            font-size: 10pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+        }
+
+        .totals-row.total .totals-label {
+            font-weight: 700;
+            color: #333;
+            font-size: 12pt;
+        }
+
+        .totals-value {
+            font-weight: 600;
+            font-size: 11pt;
+        }
+
+        .totals-row.total .totals-value {
+            font-size: 16pt;
+            color: #B8973B;
+        }
+
+        /* Payment info */
+        .payment-info {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+
+        .payment-info h3 {
+            font-size: 11pt;
+            font-weight: 700;
+            color: #B8973B;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .payment-info p {
+            font-size: 10pt;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        /* Thank you footer */
+        .thank-you {
+            text-align: center;
+            padding: 25px 0;
+            border-top: 2px solid #B8973B;
+        }
+
+        .thank-you p {
+            font-size: 14pt;
+            font-weight: 600;
+            color: #B8973B;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <div class="invoice-title">INVOICE</div>
+                <div class="invoice-number">#{{ invoice.invoice_number }}</div>
+            </div>
+            <div class="contractor-info">
+                <div class="name">{{ profile.name }}</div>
+                <div>{{ profile.address_line1 }}</div>
+                {% if profile.address_line2 %}
+                <div>{{ profile.address_line2 }}</div>
+                {% endif %}
+                <div>{{ profile.city }}, {{ profile.state }} {{ profile.zip_code }}</div>
+                <div>{{ profile.phone }}</div>
+                <div>{{ profile.email }}</div>
+            </div>
+        </div>
+
+        <!-- Bill To / For / Rate Row -->
+        <div class="info-row">
+            <div class="info-box">
+                <div class="info-label">Bill To</div>
+                <div class="info-content">
+                    <div class="company-name">{{ client.name }}</div>
+                    <div>{{ client.address_line1 }}</div>
+                    {% if client.address_line2 %}
+                    <div>{{ client.address_line2 }}</div>
+                    {% endif %}
+                    <div>{{ client.city }}, {{ client.state }} {{ client.zip_code }}</div>
+                    {% if client.phone %}
+                    <div>{{ client.phone }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="info-box">
+                <div class="info-label">For</div>
+                <div class="info-content">
+                    {{ client.service_description }}
+                </div>
+            </div>
+            <div class="info-box rate">
+                <div class="info-label">Hourly Rate</div>
+                <div class="rate-amount">{{ format_currency(invoice.hourly_rate) }}</div>
+            </div>
+        </div>
+
+        <!-- Period Info -->
+        <div class="period-info">
+            <span>Period:</span> {{ invoice.period_start.strftime('%B %d, %Y') }} - {{ invoice.period_end.strftime('%B %d, %Y') }}
+        </div>
+
+        <!-- Line Items Table -->
+        <table class="line-items">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Date</th>
+                    <th class="hours-col">Total Hours</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in line_items %}
+                <tr>
+                    <td>{{ item.project_name }}</td>
+                    <td>{{ item.work_date.strftime('%m/%d/%Y') }}</td>
+                    <td class="hours-col">{{ format_hours(item.hours) }}</td>
+                    <td>{{ format_currency(item.amount) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Totals Section -->
+        <div class="totals-section">
+            <div class="totals-table">
+                <div class="totals-row">
+                    <span class="totals-label">Subtotal</span>
+                    <span class="totals-value">{{ format_currency(invoice.subtotal) }}</span>
+                </div>
+                <div class="totals-row">
+                    <span class="totals-label">Tax Rate</span>
+                    <span class="totals-value">{{ format_tax_rate(invoice.tax_rate) }}</span>
+                </div>
+                {% if invoice.other_charges and invoice.other_charges > 0 %}
+                <div class="totals-row">
+                    <span class="totals-label">Other</span>
+                    <span class="totals-value">{{ format_currency(invoice.other_charges) }}</span>
+                </div>
+                {% endif %}
+                <div class="totals-row total">
+                    <span class="totals-label">Total</span>
+                    <span class="totals-value">{{ format_currency(invoice.total) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Information -->
+        {% if profile.payment_instructions %}
+        <div class="payment-info">
+            <h3>Payment Information</h3>
+            <p>{{ profile.payment_instructions }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Thank You -->
+        <div class="thank-you">
+            <p>THANK YOU FOR THE OPPORTUNITY!</p>
+        </div>
+    </div>
+</body>
+</html>
