@@ -1,5 +1,17 @@
 # Rae Time Tracker
 
+[![CI](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/ci.yml/badge.svg)](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/rae004/rae-time-tracker-and-invoice/branch/main/graph/badge.svg)](https://codecov.io/gh/rae004/rae-time-tracker-and-invoice)
+[![Release](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/release-please.yml/badge.svg)](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/release-please.yml)
+[![Version](https://img.shields.io/github/package-json/v/rae004/rae-time-tracker-and-invoice?filename=frontend%2Fpackage.json&color=blue&label=version)](./CHANGELOG.md)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Node.js](https://img.shields.io/badge/Node-24-brightgreen?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+
 A single-user time tracking application with invoice generation capabilities, built with Flask, React 19, TypeScript, and PostgreSQL.
 
 ## Features
@@ -39,7 +51,7 @@ A single-user time tracking application with invoice generation capabilities, bu
 
 ### Prerequisites
 - Docker and Docker Compose
-- Node.js 20+ (for local frontend development)
+- Node.js 24+ (for local frontend development)
 - Python 3.13+ and uv (for local backend development)
 
 ### Quick Start with Docker
