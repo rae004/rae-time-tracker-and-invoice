@@ -311,9 +311,7 @@ class TestGetInvoice:
         assert len(data["line_items"]) == 1
 
     def test_get_not_found(self, client, session):
-        response = client.get(
-            "/api/invoices/00000000-0000-0000-0000-000000000001"
-        )
+        response = client.get("/api/invoices/00000000-0000-0000-0000-000000000001")
         assert response.status_code == 404
         assert response.get_json()["error"] == "Invoice not found"
 
@@ -368,9 +366,7 @@ class TestUpdateInvoice:
         )
         session.commit()
 
-        response = client.put(
-            f"/api/invoices/{invoice.id}", json={"hourly_rate": "-1"}
-        )
+        response = client.put(f"/api/invoices/{invoice.id}", json={"hourly_rate": "-1"})
         assert response.status_code == 400
 
 
@@ -405,9 +401,7 @@ class TestDeleteInvoice:
         assert "finalized" in response.get_json()["error"].lower()
 
     def test_delete_not_found(self, client, session):
-        response = client.delete(
-            "/api/invoices/00000000-0000-0000-0000-000000000001"
-        )
+        response = client.delete("/api/invoices/00000000-0000-0000-0000-000000000001")
         assert response.status_code == 404
 
 
