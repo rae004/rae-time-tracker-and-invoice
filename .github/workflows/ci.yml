@@ -46,13 +46,21 @@ jobs:
         working-directory: ./backend
         run: uv run ruff format --check .
 
-      - name: Run tests
+      - name: Run tests with coverage
         working-directory: ./backend
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rae_time_tracker_test
-        run: uv run pytest -v
+        run: uv run pytest -v --cov=app --cov-report=term-missing --cov-report=xml
 
-  frontend-tests:
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./backend/coverage.xml
+          flags: backend
+          fail_ci_if_error: false
+
+  frontend-lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -77,6 +85,31 @@ jobs:
         working-directory: ./frontend
         run: npm run build
 
-      - name: Run tests
+  frontend-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
         working-directory: ./frontend
-        run: npm test
+        run: npm ci
+
+      - name: Run tests with coverage
+        working-directory: ./frontend
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./frontend/coverage/lcov.info
+          flags: frontend
+          fail_ci_if_error: false

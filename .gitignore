@@ -48,6 +48,9 @@ Thumbs.db
 htmlcov/
 .pytest_cache/
 coverage/
+coverage.xml
+coverage.lcov
+lcov.info
 
 # uv
 .uv/
