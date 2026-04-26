@@ -3,6 +3,22 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ToastProvider } from "../contexts/ToastContext";
 import type { CategoryTag, Project, TimeEntryWithProject } from "../types";
 
+export function createQueryClient(): QueryClient {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0 },
+      mutations: { retry: false },
+    },
+  });
+}
+
+export function createHookWrapper(client?: QueryClient) {
+  const queryClient = client ?? createQueryClient();
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return QueryClientProvider({ client: queryClient, children });
+  };
+}
+
 export function createCategoryTag(
   overrides?: Partial<CategoryTag>,
 ): CategoryTag {
