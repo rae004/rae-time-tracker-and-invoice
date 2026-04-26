@@ -319,6 +319,7 @@ export function CreateInvoice() {
                           </label>
                         </th>
                         <th>Project</th>
+                        <th>Description</th>
                         <th>Date</th>
                         <th className="text-right">Hours</th>
                         <th className="text-right">Amount</th>
@@ -339,6 +340,7 @@ export function CreateInvoice() {
                               />
                             </td>
                             <td>{item.project_name}</td>
+                            <td>{item.time_entry_name || ""}</td>
                             <td>{formatDate(item.work_date)}</td>
                             <td className="text-right">{parseFloat(item.hours).toFixed(2)}</td>
                             <td className="text-right">{formatCurrency(item.amount)}</td>
@@ -348,7 +350,7 @@ export function CreateInvoice() {
                     </tbody>
                     <tfoot>
                       <tr className="font-semibold">
-                        <td colSpan={3}>Total</td>
+                        <td colSpan={4}>Total</td>
                         <td className="text-right">
                           {preview.line_items
                             .filter((item) => !item.time_entry_id || !excludedEntries.has(item.time_entry_id))

@@ -31,6 +31,8 @@ frontend/.vite/
 .env
 .env.local
 .env.*.local
+docs/archive/
+backend/invoices/
 
 # IDE
 .idea/

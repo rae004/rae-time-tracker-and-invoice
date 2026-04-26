@@ -99,6 +99,7 @@ export function createInvoiceLineItem(
     invoice_id: "inv-1",
     time_entry_id: "entry-1",
     project_name: "My Project",
+    time_entry_name: "Working on feature",
     work_date: "2026-04-15",
     hours: "1.5000",
     amount: "225.00",

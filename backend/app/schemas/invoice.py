@@ -11,6 +11,7 @@ class InvoiceLineItemBase(BaseModel):
     """Base schema for InvoiceLineItem."""
 
     project_name: str = Field(..., min_length=1, max_length=255)
+    time_entry_name: str | None = Field(default=None, max_length=500)
     work_date: date
     hours: Decimal = Field(..., ge=0)
     amount: Decimal = Field(..., ge=0)

@@ -70,6 +70,7 @@ def create_line_items_from_entries(
             {
                 "time_entry_id": entry.id,
                 "project_name": entry.project.name,
+                "time_entry_name": entry.name,
                 "work_date": entry.start_time.date(),
                 "hours": hours,
                 "amount": amount,
@@ -172,6 +173,7 @@ def create_invoice(
             invoice_id=invoice.id,
             time_entry_id=item_data.get("time_entry_id"),
             project_name=item_data["project_name"],
+            time_entry_name=item_data.get("time_entry_name"),
             work_date=item_data["work_date"],
             hours=item_data["hours"],
             amount=item_data["amount"],

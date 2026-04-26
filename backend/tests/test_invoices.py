@@ -119,6 +119,7 @@ class TestPreviewInvoice:
         assert data["client_name"] == sample_client.name
         assert len(data["line_items"]) == 1
         assert Decimal(data["line_items"][0]["hours"]) == Decimal("1.0000")
+        assert data["line_items"][0]["time_entry_name"] == "Test work"
         assert Decimal(data["subtotal"]) == Decimal("150.00")  # 1hr * $150
         assert Decimal(data["total"]) == Decimal("150.00")
 
@@ -201,6 +202,7 @@ class TestCreateInvoice:
         data = response.get_json()
         assert data["status"] == "draft"
         assert len(data["line_items"]) == 1
+        assert data["line_items"][0]["time_entry_name"] == "Test work"
         assert Decimal(data["total"]) == Decimal("150.00")
 
     def test_create_with_explicit_line_items(
@@ -504,3 +506,20 @@ class TestInvoiceServiceUnits:
         )
         assert items[0]["hours"] == Decimal("1.5000")
         assert items[0]["amount"] == Decimal("150.0000")
+        assert items[0]["time_entry_name"] == "x"
+
+    def test_create_line_items_preserves_empty_entry_name(
+        self, session, sample_project
+    ):
+        entry = TimeEntry(
+            project_id=sample_project.id,
+            name="",
+            start_time=datetime(2026, 4, 15, 14, 0, 0, tzinfo=UTC),
+            end_time=datetime(2026, 4, 15, 15, 0, 0, tzinfo=UTC),
+            duration_ms=3_600_000,
+        )
+        entry.project = sample_project
+        items = invoice_service.create_line_items_from_entries(
+            [entry], Decimal("100.00")
+        )
+        assert items[0]["time_entry_name"] == ""
