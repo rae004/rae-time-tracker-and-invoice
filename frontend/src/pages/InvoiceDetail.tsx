@@ -185,6 +185,7 @@ export function InvoiceDetail() {
               <thead>
                 <tr className="bg-base-200">
                   <th>Project</th>
+                  <th>Description</th>
                   <th>Date</th>
                   <th className="text-center">Hours</th>
                   <th className="text-right">Amount</th>
@@ -194,6 +195,7 @@ export function InvoiceDetail() {
                 {invoice.line_items.map((item) => (
                   <tr key={item.id}>
                     <td>{item.project_name}</td>
+                    <td>{item.time_entry_name || ""}</td>
                     <td>{formatDate(item.work_date)}</td>
                     <td className="text-center">{parseFloat(item.hours).toFixed(2)}</td>
                     <td className="text-right font-medium">{formatCurrency(item.amount)}</td>

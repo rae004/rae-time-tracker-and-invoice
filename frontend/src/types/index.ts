@@ -168,6 +168,7 @@ export interface InvoiceLineItem {
   invoice_id: string;
   time_entry_id: string | null;
   project_name: string;
+  time_entry_name: string | null;
   work_date: string;
   hours: string;
   amount: string;
@@ -177,6 +178,7 @@ export interface InvoiceLineItem {
 export interface InvoiceLineItemCreate {
   time_entry_id?: string | null;
   project_name: string;
+  time_entry_name?: string | null;
   work_date: string;
   hours: string;
   amount: string;

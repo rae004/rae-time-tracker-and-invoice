@@ -28,6 +28,9 @@ class InvoiceLineItem(Base):
     project_name: Mapped[str] = mapped_column(
         String(255), nullable=False
     )  # Snapshot of project name
+    time_entry_name: Mapped[str | None] = mapped_column(
+        String(500), nullable=True
+    )  # Snapshot of time entry name (the "What are you working on?" value)
     work_date: Mapped[date] = mapped_column(Date, nullable=False)
     hours: Mapped[Decimal] = mapped_column(Numeric(10, 4), nullable=False)
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)

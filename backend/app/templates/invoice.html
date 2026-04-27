@@ -310,6 +310,7 @@
             <thead>
                 <tr>
                     <th>Project</th>
+                    <th>Description</th>
                     <th>Date</th>
                     <th class="hours-col">Total Hours</th>
                     <th>Amount</th>
@@ -319,6 +320,7 @@
                 {% for item in line_items %}
                 <tr>
                     <td>{{ item.project_name }}</td>
+                    <td>{{ item.time_entry_name or '' }}</td>
                     <td>{{ item.work_date.strftime('%m/%d/%Y') }}</td>
                     <td class="hours-col">{{ format_hours(item.hours) }}</td>
                     <td>{{ format_currency(item.amount) }}</td>
