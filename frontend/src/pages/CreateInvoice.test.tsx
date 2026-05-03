@@ -51,10 +51,12 @@ function buildPreview(overrides?: Partial<InvoicePreview>): InvoicePreview {
       {
         time_entry_id: "te-1",
         project_name: "Project A",
+        time_entry_name: "Build feature",
         work_date: "2026-04-15",
         hours: "1.5000",
         amount: "225.00",
         sort_order: 0,
+        source_entry_ids: ["te-1"],
       },
     ],
     subtotal: "225.00",
@@ -256,5 +258,135 @@ describe("CreateInvoice - empty preview", () => {
         screen.getByText(/no completed time entries/i),
       ).toBeInTheDocument();
     });
+  });
+});
+
+describe("CreateInvoice - combined line items", () => {
+  it("renders the '(N entries combined)' indicator on grouped rows only", async () => {
+    mockPreviewMutate.mockImplementation((_data, options) => {
+      options?.onSuccess?.(
+        buildPreview({
+          line_items: [
+            {
+              time_entry_id: null,
+              project_name: "Project A",
+              time_entry_name: "Refactor auth",
+              work_date: "2026-04-15",
+              hours: "1.5000",
+              amount: "225.00",
+              sort_order: 0,
+              source_entry_ids: ["te-1", "te-2", "te-3"],
+            },
+            {
+              time_entry_id: "te-4",
+              project_name: "Project A",
+              time_entry_name: "Write tests",
+              work_date: "2026-04-15",
+              hours: "1.0000",
+              amount: "150.00",
+              sort_order: 1,
+              source_entry_ids: ["te-4"],
+            },
+          ],
+          subtotal: "375.00",
+          total: "375.00",
+        }),
+      );
+    });
+    const user = userEvent.setup();
+    renderCreate();
+    await user.selectOptions(screen.getByRole("combobox"), "client-1");
+
+    await waitFor(() => screen.getByText("Refactor auth"));
+    expect(screen.getByText(/3 entries combined/i)).toBeInTheDocument();
+    expect(screen.queryByText(/1 entries combined/i)).not.toBeInTheDocument();
+  });
+
+  it("toggles all source entries atomically when a combined row's checkbox is clicked", async () => {
+    mockPreviewMutate.mockImplementation((_data, options) => {
+      options?.onSuccess?.(
+        buildPreview({
+          line_items: [
+            {
+              time_entry_id: null,
+              project_name: "Project A",
+              time_entry_name: "Refactor auth",
+              work_date: "2026-04-15",
+              hours: "2.0000",
+              amount: "300.00",
+              sort_order: 0,
+              source_entry_ids: ["te-1", "te-2"],
+            },
+            {
+              time_entry_id: "te-3",
+              project_name: "Project A",
+              time_entry_name: "Write tests",
+              work_date: "2026-04-15",
+              hours: "1.0000",
+              amount: "150.00",
+              sort_order: 1,
+              source_entry_ids: ["te-3"],
+            },
+          ],
+          subtotal: "450.00",
+          total: "450.00",
+        }),
+      );
+    });
+    const user = userEvent.setup();
+    renderCreate();
+    await user.selectOptions(screen.getByRole("combobox"), "client-1");
+    await waitFor(() => screen.getByText("Refactor auth"));
+
+    // Footer total starts at 3.00 (2 + 1 hours)
+    expect(screen.getByText("3.00")).toBeInTheDocument();
+
+    // Uncheck the combined row -> all 2 source entries excluded
+    const checkboxes = screen.getAllByRole("checkbox");
+    await user.click(checkboxes[0]);
+
+    expect(checkboxes[0]).not.toBeChecked();
+    expect(checkboxes[1]).toBeChecked();
+
+    // Footer total drops to 1.00 (singleton only) — "3.00" disappears entirely
+    await waitFor(() =>
+      expect(screen.queryByText("3.00")).not.toBeInTheDocument(),
+    );
+  });
+
+  it("strips source_entry_ids from the create payload", async () => {
+    mockPreviewMutate.mockImplementation((_data, options) => {
+      options?.onSuccess?.(
+        buildPreview({
+          line_items: [
+            {
+              time_entry_id: null,
+              project_name: "Project A",
+              time_entry_name: "Refactor auth",
+              work_date: "2026-04-15",
+              hours: "2.0000",
+              amount: "300.00",
+              sort_order: 0,
+              source_entry_ids: ["te-1", "te-2"],
+            },
+          ],
+          subtotal: "300.00",
+          total: "300.00",
+        }),
+      );
+    });
+    const user = userEvent.setup();
+    renderCreate();
+    await user.selectOptions(screen.getByRole("combobox"), "client-1");
+    await waitFor(() => screen.getByText("Refactor auth"));
+
+    await user.click(screen.getByRole("button", { name: /create draft/i }));
+    await waitFor(() => expect(mockCreateAsync).toHaveBeenCalled());
+
+    const payload = mockCreateAsync.mock.calls[0][0];
+    expect(payload.line_items).toHaveLength(1);
+    expect(payload.line_items[0]).not.toHaveProperty("source_entry_ids");
+    expect(payload.line_items[0].time_entry_id).toBeNull();
+    expect(payload.line_items[0].time_entry_name).toBe("Refactor auth");
   });
 });

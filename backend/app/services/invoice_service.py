@@ -57,26 +57,47 @@ def create_line_items_from_entries(
     entries: list[TimeEntry],
     hourly_rate: Decimal,
 ) -> list[dict]:
-    """Convert time entries to invoice line item data."""
-    line_items = []
+    """Convert time entries to invoice line item data.
 
-    for i, entry in enumerate(entries):
+    Entries that share the same (project_id, time_entry_name, work_date) are
+    combined into a single line item with summed hours and amount. The
+    `time_entry_id` field is preserved for singleton groups and set to None
+    for combined groups. `source_entry_ids` always lists the contributing
+    entry IDs (useful for preview UIs; not persisted).
+    """
+    groups: dict[tuple, dict] = {}
+
+    for entry in entries:
         hours = (Decimal(str(entry.duration_ms or 0)) / Decimal("3600000")).quantize(
             Decimal("0.0001")
         )
         amount = hours * hourly_rate
+        work_date = entry.start_time.date()
+        key = (entry.project_id, entry.name, work_date)
 
-        line_items.append(
-            {
+        group = groups.get(key)
+        if group is None:
+            groups[key] = {
                 "time_entry_id": entry.id,
                 "project_name": entry.project.name,
                 "time_entry_name": entry.name,
-                "work_date": entry.start_time.date(),
+                "work_date": work_date,
                 "hours": hours,
                 "amount": amount,
-                "sort_order": i,
+                "source_entry_ids": [entry.id],
             }
-        )
+        else:
+            group["hours"] += hours
+            group["amount"] += amount
+            group["source_entry_ids"].append(entry.id)
+            group["time_entry_id"] = None  # Combined groups lose the 1:1 link
+
+    line_items = sorted(
+        groups.values(),
+        key=lambda g: (g["work_date"], g["project_name"], g["time_entry_name"] or ""),
+    )
+    for i, item in enumerate(line_items):
+        item["sort_order"] = i
 
     return line_items
 

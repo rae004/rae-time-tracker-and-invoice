@@ -185,6 +185,10 @@ export interface InvoiceLineItemCreate {
   sort_order?: number;
 }
 
+export interface InvoicePreviewLineItem extends InvoiceLineItemCreate {
+  source_entry_ids: string[];
+}
+
 export interface Invoice {
   id: string;
   invoice_number: number;
@@ -243,7 +247,7 @@ export interface InvoicePreview {
   period_start: string;
   period_end: string;
   hourly_rate: string;
-  line_items: InvoiceLineItemCreate[];
+  line_items: InvoicePreviewLineItem[];
   subtotal: string;
   tax_rate: string;
   other_charges: string;

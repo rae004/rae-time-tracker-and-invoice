@@ -5,7 +5,7 @@ from decimal import Decimal
 
 import pytest
 
-from app.models import TimeEntry
+from app.models import Project, TimeEntry
 from app.models.invoice import InvoiceStatus
 from app.services import invoice_service
 
@@ -120,6 +120,8 @@ class TestPreviewInvoice:
         assert len(data["line_items"]) == 1
         assert Decimal(data["line_items"][0]["hours"]) == Decimal("1.0000")
         assert data["line_items"][0]["time_entry_name"] == "Test work"
+        assert "source_entry_ids" in data["line_items"][0]
+        assert len(data["line_items"][0]["source_entry_ids"]) == 1
         assert Decimal(data["subtotal"]) == Decimal("150.00")  # 1hr * $150
         assert Decimal(data["total"]) == Decimal("150.00")
 
@@ -507,6 +509,8 @@ class TestInvoiceServiceUnits:
         assert items[0]["hours"] == Decimal("1.5000")
         assert items[0]["amount"] == Decimal("150.0000")
         assert items[0]["time_entry_name"] == "x"
+        assert items[0]["source_entry_ids"] == [entry.id]
+        assert items[0]["time_entry_id"] == entry.id
 
     def test_create_line_items_preserves_empty_entry_name(
         self, session, sample_project
@@ -523,3 +527,133 @@ class TestInvoiceServiceUnits:
             [entry], Decimal("100.00")
         )
         assert items[0]["time_entry_name"] == ""
+        assert items[0]["source_entry_ids"] == [entry.id]
+
+    def test_create_line_items_combines_same_day_same_name(
+        self, session, sample_project
+    ):
+        """Two entries with same project, name, and date combine into one item."""
+        entry_a = TimeEntry(
+            project_id=sample_project.id,
+            name="Refactor auth",
+            start_time=datetime(2026, 4, 15, 9, 0, 0, tzinfo=UTC),
+            end_time=datetime(2026, 4, 15, 10, 0, 0, tzinfo=UTC),
+            duration_ms=3_600_000,
+        )
+        entry_b = TimeEntry(
+            project_id=sample_project.id,
+            name="Refactor auth",
+            start_time=datetime(2026, 4, 15, 14, 0, 0, tzinfo=UTC),
+            end_time=datetime(2026, 4, 15, 14, 30, 0, tzinfo=UTC),
+            duration_ms=1_800_000,
+        )
+        entry_c = TimeEntry(
+            project_id=sample_project.id,
+            name="Write tests",
+            start_time=datetime(2026, 4, 15, 16, 0, 0, tzinfo=UTC),
+            end_time=datetime(2026, 4, 15, 17, 0, 0, tzinfo=UTC),
+            duration_ms=3_600_000,
+        )
+        for e in (entry_a, entry_b, entry_c):
+            e.project = sample_project
+        items = invoice_service.create_line_items_from_entries(
+            [entry_a, entry_b, entry_c], Decimal("100.00")
+        )
+        assert len(items) == 2
+        combined = next(i for i in items if i["time_entry_name"] == "Refactor auth")
+        singleton = next(i for i in items if i["time_entry_name"] == "Write tests")
+
+        assert combined["hours"] == Decimal("1.5000")
+        assert combined["amount"] == Decimal("150.0000")
+        assert combined["time_entry_id"] is None
+        assert set(combined["source_entry_ids"]) == {entry_a.id, entry_b.id}
+        assert len(combined["source_entry_ids"]) == 2
+
+        assert singleton["time_entry_id"] == entry_c.id
+        assert singleton["source_entry_ids"] == [entry_c.id]
+
+    def test_create_line_items_different_projects_not_combined(
+        self, session, sample_client, sample_project
+    ):
+        """Same name + date but different projects must remain separate."""
+        other_project = Project(
+            client_id=sample_client.id,
+            name="Other Project",
+            is_active=True,
+        )
+        session.add(other_project)
+        session.commit()
+
+        entry_a = TimeEntry(
+            project_id=sample_project.id,
+            name="Same name",
+            start_time=datetime(2026, 4, 15, 9, 0, 0, tzinfo=UTC),
+            end_time=datetime(2026, 4, 15, 10, 0, 0, tzinfo=UTC),
+            duration_ms=3_600_000,
+        )
+        entry_b = TimeEntry(
+            project_id=other_project.id,
+            name="Same name",
+            start_time=datetime(2026, 4, 15, 14, 0, 0, tzinfo=UTC),
+            end_time=datetime(2026, 4, 15, 15, 0, 0, tzinfo=UTC),
+            duration_ms=3_600_000,
+        )
+        entry_a.project = sample_project
+        entry_b.project = other_project
+        items = invoice_service.create_line_items_from_entries(
+            [entry_a, entry_b], Decimal("100.00")
+        )
+        assert len(items) == 2
+
+    def test_create_line_items_different_dates_not_combined(
+        self, session, sample_project
+    ):
+        """Same project + name but different dates must remain separate."""
+        entry_a = TimeEntry(
+            project_id=sample_project.id,
+            name="Same task",
+            start_time=datetime(2026, 4, 15, 14, 0, 0, tzinfo=UTC),
+            end_time=datetime(2026, 4, 15, 15, 0, 0, tzinfo=UTC),
+            duration_ms=3_600_000,
+        )
+        entry_b = TimeEntry(
+            project_id=sample_project.id,
+            name="Same task",
+            start_time=datetime(2026, 4, 16, 14, 0, 0, tzinfo=UTC),
+            end_time=datetime(2026, 4, 16, 15, 0, 0, tzinfo=UTC),
+            duration_ms=3_600_000,
+        )
+        entry_a.project = sample_project
+        entry_b.project = sample_project
+        items = invoice_service.create_line_items_from_entries(
+            [entry_a, entry_b], Decimal("100.00")
+        )
+        assert len(items) == 2
+
+    def test_create_line_items_empty_name_combines_within_day(
+        self, session, sample_project
+    ):
+        """Two empty-named entries on the same project/date combine."""
+        entry_a = TimeEntry(
+            project_id=sample_project.id,
+            name="",
+            start_time=datetime(2026, 4, 15, 9, 0, 0, tzinfo=UTC),
+            end_time=datetime(2026, 4, 15, 10, 0, 0, tzinfo=UTC),
+            duration_ms=3_600_000,
+        )
+        entry_b = TimeEntry(
+            project_id=sample_project.id,
+            name="",
+            start_time=datetime(2026, 4, 15, 14, 0, 0, tzinfo=UTC),
+            end_time=datetime(2026, 4, 15, 15, 0, 0, tzinfo=UTC),
+            duration_ms=3_600_000,
+        )
+        entry_a.project = sample_project
+        entry_b.project = sample_project
+        items = invoice_service.create_line_items_from_entries(
+            [entry_a, entry_b], Decimal("100.00")
+        )
+        assert len(items) == 1
+        assert items[0]["hours"] == Decimal("2.0000")
+        assert items[0]["time_entry_id"] is None
+        assert len(items[0]["source_entry_ids"]) == 2

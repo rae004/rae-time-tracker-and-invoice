@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useClients } from "../hooks/useClients";
 import { useInvoicePreview, useCreateInvoice } from "../hooks/useInvoices";
 import { useToast } from "../contexts/ToastContext";
-import type { InvoicePreview } from "../types";
+import type { InvoicePreview, InvoicePreviewLineItem } from "../types";
 import { formatCurrency, formatDate, toDateString } from "../utils/formatters";
 
 function getDefaultDateRange(): { start: string; end: string } {
@@ -69,13 +69,19 @@ export function CreateInvoice() {
     }
   }, [clientId, periodStart, periodEnd, excludedEntries, loadPreview]);
 
-  const toggleEntryExclusion = (entryId: string) => {
+  const isItemExcluded = (item: InvoicePreviewLineItem) =>
+    item.source_entry_ids.length > 0 &&
+    item.source_entry_ids.every((id) => excludedEntries.has(id));
+
+  const toggleItemExclusion = (item: InvoicePreviewLineItem) => {
+    if (item.source_entry_ids.length === 0) return;
+    const excluded = isItemExcluded(item);
     setExcludedEntries((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(entryId)) {
-        newSet.delete(entryId);
+      if (excluded) {
+        item.source_entry_ids.forEach((id) => newSet.delete(id));
       } else {
-        newSet.add(entryId);
+        item.source_entry_ids.forEach((id) => newSet.add(id));
       }
       return newSet;
     });
@@ -85,7 +91,7 @@ export function CreateInvoice() {
     if (!preview) return { subtotal: 0, tax: 0, total: 0 };
 
     const activeItems = preview.line_items.filter(
-      (item) => !item.time_entry_id || !excludedEntries.has(item.time_entry_id)
+      (item) => !isItemExcluded(item)
     );
 
     const subtotal = activeItems.reduce(
@@ -104,7 +110,7 @@ export function CreateInvoice() {
     if (!preview) return;
 
     const activeItems = preview.line_items.filter(
-      (item) => !item.time_entry_id || !excludedEntries.has(item.time_entry_id)
+      (item) => !isItemExcluded(item)
     );
 
     if (activeItems.length === 0) {
@@ -120,7 +126,15 @@ export function CreateInvoice() {
         hourly_rate: preview.hourly_rate,
         tax_rate: (parseFloat(taxRate) / 100).toString(),
         other_charges: otherCharges,
-        line_items: activeItems,
+        line_items: activeItems.map((item) => ({
+          time_entry_id: item.time_entry_id,
+          project_name: item.project_name,
+          time_entry_name: item.time_entry_name,
+          work_date: item.work_date,
+          hours: item.hours,
+          amount: item.amount,
+          sort_order: item.sort_order,
+        })),
       });
 
       showToast("Invoice created!", "success");
@@ -327,20 +341,28 @@ export function CreateInvoice() {
                     </thead>
                     <tbody>
                       {preview.line_items.map((item, index) => {
-                        const isExcluded = item.time_entry_id && excludedEntries.has(item.time_entry_id);
+                        const excluded = isItemExcluded(item);
+                        const groupSize = item.source_entry_ids.length;
                         return (
-                          <tr key={index} className={isExcluded ? "opacity-50" : ""}>
+                          <tr key={index} className={excluded ? "opacity-50" : ""}>
                             <td>
                               <input
                                 type="checkbox"
                                 className="checkbox checkbox-sm"
-                                checked={!isExcluded}
-                                onChange={() => item.time_entry_id && toggleEntryExclusion(item.time_entry_id)}
-                                disabled={!item.time_entry_id}
+                                checked={!excluded}
+                                onChange={() => toggleItemExclusion(item)}
+                                disabled={groupSize === 0}
                               />
                             </td>
                             <td>{item.project_name}</td>
-                            <td>{item.time_entry_name || ""}</td>
+                            <td>
+                              <div>{item.time_entry_name || ""}</div>
+                              {groupSize > 1 && (
+                                <div className="text-xs italic text-base-content/50">
+                                  {groupSize} entries combined
+                                </div>
+                              )}
+                            </td>
                             <td>{formatDate(item.work_date)}</td>
                             <td className="text-right">{parseFloat(item.hours).toFixed(2)}</td>
                             <td className="text-right">{formatCurrency(item.amount)}</td>
@@ -353,7 +375,7 @@ export function CreateInvoice() {
                         <td colSpan={4}>Total</td>
                         <td className="text-right">
                           {preview.line_items
-                            .filter((item) => !item.time_entry_id || !excludedEntries.has(item.time_entry_id))
+                            .filter((item) => !isItemExcluded(item))
                             .reduce((sum, item) => sum + parseFloat(item.hours), 0)
                             .toFixed(2)}
                         </td>

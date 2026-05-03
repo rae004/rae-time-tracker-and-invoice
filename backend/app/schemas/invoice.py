@@ -105,6 +105,13 @@ class InvoicePreviewRequest(BaseModel):
     exclude_entry_ids: list[UUID] = Field(default_factory=list)
 
 
+class InvoicePreviewLineItem(InvoiceLineItemBase):
+    """Preview-only line item shape with grouping metadata."""
+
+    time_entry_id: UUID | None = None
+    source_entry_ids: list[UUID] = Field(default_factory=list)
+
+
 class InvoicePreviewResponse(BaseModel):
     """Schema for invoice preview data."""
 
@@ -113,7 +120,7 @@ class InvoicePreviewResponse(BaseModel):
     period_start: date
     period_end: date
     hourly_rate: Decimal
-    line_items: list[InvoiceLineItemCreate]
+    line_items: list[InvoicePreviewLineItem]
     subtotal: Decimal
     tax_rate: Decimal
     other_charges: Decimal
