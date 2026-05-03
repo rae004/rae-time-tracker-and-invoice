@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.1...v0.1.2) (2026-04-27)
+
+
+### Features
+
+* add time_entry_name to invoice line items ([c2662f8](https://github.com/rae004/rae-time-tracker-and-invoice/commit/c2662f83bd29c38dc5af00e78485e04086d8b40d))
+* add time_entry_name to invoice line items + boost frontend coverage ([b50696a](https://github.com/rae004/rae-time-tracker-and-invoice/commit/b50696affb449ff52ef815534fd74780f1c89dfe))
+
 ## [0.1.1](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.0...v0.1.1) (2026-04-26)
 
 
