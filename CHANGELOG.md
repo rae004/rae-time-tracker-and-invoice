@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.2...v0.1.3) (2026-05-03)
+
+
+### Features
+
+* combine same-day invoice line items + fix dev container venv mount ([2220ed2](https://github.com/rae004/rae-time-tracker-and-invoice/commit/2220ed2731d12e533b185d0b106d29e901c470ef))
+
 ## [0.1.2](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.1...v0.1.2) (2026-04-27)
 
 
