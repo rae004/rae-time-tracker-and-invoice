@@ -237,6 +237,128 @@ class TestImport:
         assert len(rt_inv["line_items"]) == len(orig_inv["line_items"])
 
 
+class TestImportSkipPaths:
+    """Edge cases that exercise FK-resolution and skip branches."""
+
+    def _empty_payload(self) -> dict:
+        return {
+            "export_version": "1.0",
+            "export_date": "2026-05-10T00:00:00Z",
+            "data": {
+                "user_profile": None,
+                "category_tags": [],
+                "clients": [],
+                "projects": [],
+                "time_entries": [],
+                "invoices": [],
+            },
+        }
+
+    def test_project_with_unknown_client_is_skipped(self, client, session):
+        payload = self._empty_payload()
+        payload["data"]["projects"] = [
+            {
+                "name": "Orphan",
+                "description": None,
+                "is_active": True,
+                "client_name": "Nobody",
+            }
+        ]
+        response = client.post("/api/data/import", json=payload)
+        assert response.status_code == 200
+        counts = response.get_json()["counts"]
+        assert counts["projects_skipped"] == 1
+        assert counts["projects_created"] == 0
+
+    def test_time_entry_resolves_project_when_client_name_missing(
+        self, client, session, sample_client, sample_project
+    ):
+        payload = self._empty_payload()
+        payload["data"]["time_entries"] = [
+            {
+                "name": "no client_name on entry",
+                "start_time": "2026-04-15T10:00:00Z",
+                "end_time": "2026-04-15T11:00:00Z",
+                "duration_ms": 3_600_000,
+                "project_name": sample_project.name,
+                "client_name": None,
+                "tag_names": [],
+            }
+        ]
+        response = client.post("/api/data/import", json=payload)
+        assert response.status_code == 200
+
+        entry = session.query(TimeEntry).first()
+        assert entry is not None
+        assert entry.project_id == sample_project.id
+
+    def test_invoice_with_unknown_client_is_skipped(self, client, session):
+        payload = self._empty_payload()
+        payload["data"]["invoices"] = [
+            {
+                "invoice_number": 9999,
+                "client_name": "Nobody",
+                "period_start": "2026-04-01",
+                "period_end": "2026-04-30",
+                "hourly_rate": "100.00",
+                "subtotal": "0.00",
+                "tax_rate": "0.00",
+                "other_charges": "0.00",
+                "total": "0.00",
+                "status": "draft",
+                "line_items": [],
+            }
+        ]
+        response = client.post("/api/data/import", json=payload)
+        assert response.status_code == 200
+        counts = response.get_json()["counts"]
+        assert counts["invoices_skipped"] == 1
+        assert counts["invoices_created"] == 0
+
+
+class TestServiceErrors:
+    """500 paths when underlying service raises."""
+
+    def test_import_returns_500_when_service_raises(self, client, session, monkeypatch):
+        from app.routes import data_management as data_management_route
+
+        def boom(*_args, **_kwargs):
+            raise RuntimeError("boom")
+
+        monkeypatch.setattr(data_management_route, "apply_import", boom)
+
+        payload = {
+            "export_version": "1.0",
+            "export_date": "2026-05-10T00:00:00Z",
+            "data": {
+                "user_profile": None,
+                "category_tags": [],
+                "clients": [],
+                "projects": [],
+                "time_entries": [],
+                "invoices": [],
+            },
+        }
+        response = client.post("/api/data/import", json=payload)
+        assert response.status_code == 500
+        assert "boom" in response.get_json()["error"]
+
+    def test_reset_returns_500_when_service_raises(self, client, session, monkeypatch):
+        from app.routes import data_management as data_management_route
+
+        def boom(*_args, **_kwargs):
+            raise RuntimeError("kaboom")
+
+        monkeypatch.setattr(data_management_route, "reset_all", boom)
+
+        response = client.delete(
+            "/api/data/reset",
+            headers={RESET_CONFIRM_HEADER: RESET_CONFIRM_VALUE},
+        )
+        assert response.status_code == 500
+        assert "kaboom" in response.get_json()["error"]
+
+
 class TestReset:
     """DELETE /api/data/reset."""
 

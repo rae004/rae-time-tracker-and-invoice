@@ -134,6 +134,7 @@ export function DataManagement() {
           className="btn btn-primary btn-sm"
           onClick={handleExport}
           disabled={exportMutation.isPending}
+          aria-label="Export Data"
         >
           {exportMutation.isPending ? (
             <span className="loading loading-spinner loading-xs" />
@@ -205,6 +206,7 @@ export function DataManagement() {
                   className="btn btn-primary btn-sm"
                   onClick={handleConfirmImport}
                   disabled={importMutation.isPending}
+                  aria-label="Confirm Import"
                 >
                   {importMutation.isPending ? (
                     <span className="loading loading-spinner loading-xs" />
@@ -273,6 +275,7 @@ export function DataManagement() {
                   resetConfirmText !== RESET_CONFIRM_TYPED_VALUE ||
                   resetMutation.isPending
                 }
+                aria-label="Delete Everything"
               >
                 {resetMutation.isPending ? (
                   <span className="loading loading-spinner loading-xs" />
