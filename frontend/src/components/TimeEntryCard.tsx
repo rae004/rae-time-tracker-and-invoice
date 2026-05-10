@@ -47,6 +47,26 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
   const startChanged = editStartTime !== initStartTime || editStartMs !== initStartMs;
   const endChanged = editEndTime !== initEndTime || editEndMs !== initEndMs;
 
+  const resetEditState = () => {
+    setEditName(entry.name);
+    setEditProjectId(entry.project_id ?? "");
+    setEditStartTime(toLocalDatetime(entry.start_time));
+    setEditStartMs(toLocalMs(entry.start_time));
+    setEditEndTime(entry.end_time ? toLocalDatetime(entry.end_time) : "");
+    setEditEndMs(entry.end_time ? toLocalMs(entry.end_time) : 0);
+    setEditTagIds(entry.tags.map((t) => t.id));
+  };
+
+  const handleEdit = () => {
+    resetEditState();
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    resetEditState();
+  };
+
   const handleSave = async () => {
     try {
       await updateEntry.mutateAsync({
@@ -189,16 +209,7 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
             <div className="flex gap-2 justify-end">
               <button
                 className="btn btn-ghost btn-sm"
-                onClick={() => {
-                  setIsEditing(false);
-                  setEditName(entry.name);
-                  setEditProjectId(entry.project_id ?? "");
-                  setEditStartTime(toLocalDatetime(entry.start_time));
-                  setEditStartMs(toLocalMs(entry.start_time));
-                  setEditEndTime(entry.end_time ? toLocalDatetime(entry.end_time) : "");
-                  setEditEndMs(entry.end_time ? toLocalMs(entry.end_time) : 0);
-                  setEditTagIds(entry.tags.map((t) => t.id));
-                }}
+                onClick={handleCancel}
               >
                 Cancel
               </button>
@@ -291,7 +302,7 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
                 className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-32"
               >
                 <li>
-                  <button onClick={() => setIsEditing(true)}>Edit</button>
+                  <button onClick={handleEdit}>Edit</button>
                 </li>
                 <li>
                   <button

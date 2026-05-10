@@ -229,6 +229,60 @@ describe("TimeEntryCard - Edit Mode", () => {
     expect(timeElements).toHaveLength(0);
   });
 
+  it("opens edit form with empty End Time and no project for a running entry", async () => {
+    const user = userEvent.setup();
+    const running = createTimeEntry({
+      project_id: null,
+      project_name: null,
+      is_running: true,
+      end_time: null,
+      duration_ms: null,
+    });
+    const { container } = render(<TimeEntryCard entry={running} />);
+
+    await user.click(screen.getByText("Edit"));
+
+    const datetimeInputs = container.querySelectorAll<HTMLInputElement>(
+      'input[type="datetime-local"]',
+    );
+    expect(datetimeInputs[1].value).toBe("");
+
+    const projectSelect = container.querySelector<HTMLSelectElement>("select");
+    expect(projectSelect?.value).toBe("");
+
+    const msInputs = container.querySelectorAll<HTMLInputElement>(
+      'input[type="number"]',
+    );
+    expect(msInputs[1].value).toBe("0");
+  });
+
+  it("populates End Time field when entry stops between mount and Edit click", async () => {
+    const user = userEvent.setup();
+    const running = createTimeEntry({
+      id: "entry-r",
+      is_running: true,
+      end_time: null,
+      duration_ms: null,
+    });
+    const { container, rerender } = render(<TimeEntryCard entry={running} />);
+
+    const stopped = createTimeEntry({
+      id: "entry-r",
+      is_running: false,
+      end_time: "2026-04-11T15:30:00.000Z",
+      duration_ms: 5400000,
+    });
+    rerender(<TimeEntryCard entry={stopped} />);
+
+    await user.click(screen.getByText("Edit"));
+
+    const datetimeInputs = container.querySelectorAll<HTMLInputElement>(
+      'input[type="datetime-local"]',
+    );
+    expect(datetimeInputs).toHaveLength(2);
+    expect(datetimeInputs[1].value).not.toBe("");
+  });
+
   it("does not show end time when entry has no end_time", () => {
     render(
       <TimeEntryCard
