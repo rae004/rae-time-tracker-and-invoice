@@ -14,6 +14,10 @@ vi.mock("./settings/TagSettings", () => ({
   TagSettings: () => <div data-testid="tags" />,
 }));
 
+vi.mock("./settings/DataManagement", () => ({
+  DataManagement: () => <div data-testid="data" />,
+}));
+
 describe("Settings", () => {
   it("renders the Settings heading", () => {
     render(<Settings />);
@@ -42,6 +46,14 @@ describe("Settings", () => {
     render(<Settings />);
     await user.click(screen.getByRole("tab", { name: /tags/i }));
     expect(screen.getByTestId("tags")).toBeInTheDocument();
+    expect(screen.queryByTestId("profile")).toBeNull();
+  });
+
+  it("switches to Data tab on click", async () => {
+    const user = userEvent.setup();
+    render(<Settings />);
+    await user.click(screen.getByRole("tab", { name: /^Data$/i }));
+    expect(screen.getByTestId("data")).toBeInTheDocument();
     expect(screen.queryByTestId("profile")).toBeNull();
   });
 
