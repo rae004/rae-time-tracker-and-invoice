@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.5](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.4...v0.1.5) (2026-05-10)
+
+
+### Features
+
+* add full-data export/import/reset under Settings → Data tab ([d6cafdb](https://github.com/rae004/rae-time-tracker-and-invoice/commit/d6cafdbd36101741102fccce5a6871844b6be0fa))
+* add full-data export/import/reset under Settings → Data tab ([3560cb8](https://github.com/rae004/rae-time-tracker-and-invoice/commit/3560cb8c482968a6fd5a81eca9391f228e9ea0f6))
+
 ## [0.1.4](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.3...v0.1.4) (2026-05-10)
 
 
