@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { createHookWrapper } from "../test/fixtures";
 import {
   RESET_CONFIRM_HEADER,
@@ -112,6 +112,61 @@ describe("useExportData", () => {
 
     await expect(result.current.mutateAsync()).rejects.toThrow(/boom/);
   });
+
+  it("falls back to generic message when error body has non-string error field", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockResponse({ error: [{ msg: "bad" }] }, { status: 500 }),
+    );
+    const { result } = renderHook(() => useExportData(), {
+      wrapper: createHookWrapper(),
+    });
+    await expect(result.current.mutateAsync()).rejects.toThrow(/Export failed/);
+  });
+
+  it("falls back to generic message when error body is not JSON", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("not json", { status: 500 }),
+    );
+    const { result } = renderHook(() => useExportData(), {
+      wrapper: createHookWrapper(),
+    });
+    await expect(result.current.mutateAsync()).rejects.toThrow(/Export failed/);
+  });
+
+  it("falls back to default filename when Content-Disposition is missing", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(samplePayload), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    const { result } = renderHook(() => useExportData(), {
+      wrapper: createHookWrapper(),
+    });
+
+    const out = await result.current.mutateAsync();
+    expect(out.filename).toMatch(/^rae-time-tracker-export-\d{4}-\d{2}-\d{2}\.json$/);
+  });
+
+  it("falls back to default filename when Content-Disposition lacks filename", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(samplePayload), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Disposition": "attachment",
+        },
+      }),
+    );
+
+    const { result } = renderHook(() => useExportData(), {
+      wrapper: createHookWrapper(),
+    });
+
+    const out = await result.current.mutateAsync();
+    expect(out.filename).toMatch(/^rae-time-tracker-export-/);
+  });
 });
 
 describe("useImportData", () => {
@@ -166,6 +221,30 @@ describe("useImportData", () => {
       /bad payload/,
     );
   });
+
+  it("falls back to generic Import failed message when error body is non-string", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("garbage", { status: 500 }),
+    );
+    const { result } = renderHook(() => useImportData(), {
+      wrapper: createHookWrapper(),
+    });
+    await expect(result.current.mutateAsync(samplePayload)).rejects.toThrow(
+      /Import failed/,
+    );
+  });
+
+  it("uses Import failed when error body's error field is non-string", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockResponse({ error: [{ msg: "bad" }] }, { status: 400 }),
+    );
+    const { result } = renderHook(() => useImportData(), {
+      wrapper: createHookWrapper(),
+    });
+    await expect(result.current.mutateAsync(samplePayload)).rejects.toThrow(
+      /Import failed/,
+    );
+  });
 });
 
 describe("useResetData", () => {
@@ -202,7 +281,25 @@ describe("useResetData", () => {
 
     await expect(result.current.mutateAsync()).rejects.toThrow(/denied/);
   });
+
+  it("falls back to generic Reset failed message when error body is non-string", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("garbage", { status: 500 }),
+    );
+    const { result } = renderHook(() => useResetData(), {
+      wrapper: createHookWrapper(),
+    });
+    await expect(result.current.mutateAsync()).rejects.toThrow(/Reset failed/);
+  });
+
+  it("uses Reset failed when error body's error field is non-string", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      mockResponse({ error: [{ msg: "bad" }] }, { status: 400 }),
+    );
+    const { result } = renderHook(() => useResetData(), {
+      wrapper: createHookWrapper(),
+    });
+    await expect(result.current.mutateAsync()).rejects.toThrow(/Reset failed/);
+  });
 });
 
-// Suppress unused warning for waitFor (kept for future tests that need it)
-void waitFor;
