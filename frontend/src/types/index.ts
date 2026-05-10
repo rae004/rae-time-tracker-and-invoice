@@ -253,3 +253,114 @@ export interface InvoicePreview {
   other_charges: string;
   total: string;
 }
+
+// Data export/import
+export interface UserProfileExport {
+  name: string;
+  address_line1: string;
+  address_line2: string | null;
+  city: string;
+  state: string;
+  zip_code: string;
+  email: string;
+  phone: string;
+  payment_instructions: string;
+  next_invoice_number: number;
+}
+
+export interface CategoryTagExport {
+  name: string;
+  color: string;
+}
+
+export interface ClientExport {
+  name: string;
+  address_line1: string;
+  address_line2: string | null;
+  city: string;
+  state: string;
+  zip_code: string;
+  phone: string | null;
+  hourly_rate: string;
+  service_description: string;
+}
+
+export interface ProjectExport {
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  client_name: string;
+}
+
+export interface TimeEntryExport {
+  name: string;
+  start_time: string;
+  end_time: string | null;
+  duration_ms: number | null;
+  project_name: string | null;
+  client_name: string | null;
+  tag_names: string[];
+}
+
+export interface InvoiceLineItemExport {
+  project_name: string;
+  time_entry_name: string | null;
+  work_date: string;
+  hours: string;
+  amount: string;
+  sort_order: number;
+}
+
+export interface InvoiceExport {
+  invoice_number: number;
+  client_name: string;
+  period_start: string;
+  period_end: string;
+  hourly_rate: string;
+  subtotal: string;
+  tax_rate: string;
+  other_charges: string;
+  total: string;
+  status: string;
+  line_items: InvoiceLineItemExport[];
+}
+
+export interface DataExportPayload {
+  user_profile: UserProfileExport | null;
+  category_tags: CategoryTagExport[];
+  clients: ClientExport[];
+  projects: ProjectExport[];
+  time_entries: TimeEntryExport[];
+  invoices: InvoiceExport[];
+}
+
+export interface DataExport {
+  export_version: string;
+  export_date: string;
+  data: DataExportPayload;
+}
+
+export interface ImportCounts {
+  user_profile_created: number;
+  user_profile_skipped: number;
+  category_tags_created: number;
+  category_tags_skipped: number;
+  clients_created: number;
+  clients_skipped: number;
+  projects_created: number;
+  projects_skipped: number;
+  time_entries_created: number;
+  invoices_created: number;
+  invoices_skipped: number;
+  invoice_line_items_created: number;
+}
+
+export interface ImportResult {
+  success: boolean;
+  counts: ImportCounts;
+}
+
+export interface ResetResult {
+  success: boolean;
+  deleted: Record<string, number>;
+}
