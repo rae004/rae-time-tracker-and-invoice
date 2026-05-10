@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.3...v0.1.4) (2026-05-10)
+
+
+### Bug Fixes
+
+* sync time entry edit form state when entering edit mode ([3206244](https://github.com/rae004/rae-time-tracker-and-invoice/commit/320624448467c135713a997c6150c6540863c7a8))
+* sync time entry edit form state when entering edit mode ([1992c95](https://github.com/rae004/rae-time-tracker-and-invoice/commit/1992c953cbad54242aa1ed40cccf10294845b4d4))
+
 ## [0.1.3](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.2...v0.1.3) (2026-05-03)
 
 
