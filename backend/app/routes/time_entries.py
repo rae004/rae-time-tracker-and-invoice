@@ -1,5 +1,6 @@
 """API routes for Time Entry management."""
 
+import logging
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -18,6 +19,7 @@ from app.schemas import (
 )
 from app.services import time_entry_service
 
+logger = logging.getLogger(__name__)
 time_entries_bp = Blueprint("time_entries", __name__)
 
 
@@ -157,9 +159,10 @@ def create_time_entry():
         session.refresh(entry)
         response = entry_to_response(entry)
         return jsonify(response.model_dump(mode="json")), 201
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to create time entry")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -284,9 +287,10 @@ def update_time_entry(entry_id: UUID):
         session.commit()
         session.refresh(entry)
         return jsonify(entry_to_response_with_project(entry))
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to update time entry")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -303,9 +307,10 @@ def delete_time_entry(entry_id: UUID):
         session.delete(entry)
         session.commit()
         return "", 204
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to delete time entry")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -326,8 +331,9 @@ def stop_time_entry(entry_id: UUID):
         session.commit()
         session.refresh(entry)
         return jsonify(entry_to_response_with_project(entry))
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to stop timer")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()

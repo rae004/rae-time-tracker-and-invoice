@@ -1,5 +1,6 @@
 """API routes for Project management."""
 
+import logging
 from uuid import UUID
 
 from flask import Blueprint, jsonify, request
@@ -15,6 +16,7 @@ from app.schemas import (
     ProjectWithClientResponse,
 )
 
+logger = logging.getLogger(__name__)
 projects_bp = Blueprint("projects", __name__)
 
 
@@ -76,9 +78,10 @@ def create_project():
         session.refresh(project)
         response = ProjectResponse.model_validate(project)
         return jsonify(response.model_dump(mode="json")), 201
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to create project")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -131,9 +134,10 @@ def update_project(project_id: UUID):
         session.refresh(project)
         response = ProjectResponse.model_validate(project)
         return jsonify(response.model_dump(mode="json"))
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to update project")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -150,8 +154,9 @@ def delete_project(project_id: UUID):
         session.delete(project)
         session.commit()
         return "", 204
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to delete project")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()

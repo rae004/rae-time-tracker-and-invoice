@@ -1,5 +1,6 @@
 """API routes for Client management."""
 
+import logging
 from uuid import UUID
 
 from flask import Blueprint, jsonify, request
@@ -9,6 +10,7 @@ from app.extensions import db
 from app.models import Client
 from app.schemas import ClientCreate, ClientListResponse, ClientResponse, ClientUpdate
 
+logger = logging.getLogger(__name__)
 clients_bp = Blueprint("clients", __name__)
 
 
@@ -53,9 +55,10 @@ def create_client():
         session.refresh(client)
         response = ClientResponse.model_validate(client)
         return jsonify(response.model_dump(mode="json")), 201
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to create client")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -97,9 +100,10 @@ def update_client(client_id: UUID):
         session.refresh(client)
         response = ClientResponse.model_validate(client)
         return jsonify(response.model_dump(mode="json"))
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to update client")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -116,8 +120,9 @@ def delete_client(client_id: UUID):
         session.delete(client)
         session.commit()
         return "", 204
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to delete client")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
