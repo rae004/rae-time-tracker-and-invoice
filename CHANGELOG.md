@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.5...v0.1.6) (2026-05-24)
+
+
+### Bug Fixes
+
+* stop leaking exception details to API clients (CWE-209) ([#33](https://github.com/rae004/rae-time-tracker-and-invoice/issues/33)) ([672d131](https://github.com/rae004/rae-time-tracker-and-invoice/commit/672d131cfa67a1e7db52299e750a0b466c48935b))
+
 ## [0.1.5](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.4...v0.1.5) (2026-05-10)
 
 
