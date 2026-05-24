@@ -319,7 +319,9 @@ class TestImportSkipPaths:
 class TestServiceErrors:
     """500 paths when underlying service raises."""
 
-    def test_import_returns_500_when_service_raises(self, client, session, monkeypatch):
+    def test_import_returns_500_when_service_raises(
+        self, client, session, monkeypatch, caplog
+    ):
         from app.routes import data_management as data_management_route
 
         def boom(*_args, **_kwargs):
@@ -339,11 +341,16 @@ class TestServiceErrors:
                 "invoices": [],
             },
         }
-        response = client.post("/api/data/import", json=payload)
+        with caplog.at_level("ERROR", logger="app.routes.data_management"):
+            response = client.post("/api/data/import", json=payload)
         assert response.status_code == 500
-        assert "boom" in response.get_json()["error"]
+        assert response.get_json() == {"error": "Internal server error"}
+        # Real exception details land in server logs, not the response body
+        assert "boom" in caplog.text
 
-    def test_reset_returns_500_when_service_raises(self, client, session, monkeypatch):
+    def test_reset_returns_500_when_service_raises(
+        self, client, session, monkeypatch, caplog
+    ):
         from app.routes import data_management as data_management_route
 
         def boom(*_args, **_kwargs):
@@ -351,12 +358,14 @@ class TestServiceErrors:
 
         monkeypatch.setattr(data_management_route, "reset_all", boom)
 
-        response = client.delete(
-            "/api/data/reset",
-            headers={RESET_CONFIRM_HEADER: RESET_CONFIRM_VALUE},
-        )
+        with caplog.at_level("ERROR", logger="app.routes.data_management"):
+            response = client.delete(
+                "/api/data/reset",
+                headers={RESET_CONFIRM_HEADER: RESET_CONFIRM_VALUE},
+            )
         assert response.status_code == 500
-        assert "kaboom" in response.get_json()["error"]
+        assert response.get_json() == {"error": "Internal server error"}
+        assert "kaboom" in caplog.text
 
 
 class TestReset:

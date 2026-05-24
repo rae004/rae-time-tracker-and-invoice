@@ -1,5 +1,6 @@
 """API routes for CategoryTag management."""
 
+import logging
 from uuid import UUID
 
 from flask import Blueprint, jsonify, request
@@ -15,6 +16,7 @@ from app.schemas import (
     CategoryTagUpdate,
 )
 
+logger = logging.getLogger(__name__)
 category_tags_bp = Blueprint("category_tags", __name__)
 
 
@@ -55,9 +57,10 @@ def create_category_tag():
     except IntegrityError:
         session.rollback()
         return jsonify({"error": "A tag with this name already exists"}), 409
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to create category tag")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -102,9 +105,10 @@ def update_category_tag(tag_id: UUID):
     except IntegrityError:
         session.rollback()
         return jsonify({"error": "A tag with this name already exists"}), 409
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to update category tag")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -121,8 +125,9 @@ def delete_category_tag(tag_id: UUID):
         session.delete(tag)
         session.commit()
         return "", 204
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to delete category tag")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()

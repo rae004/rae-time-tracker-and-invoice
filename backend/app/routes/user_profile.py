@@ -1,5 +1,7 @@
 """API routes for UserProfile management."""
 
+import logging
+
 from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
 
@@ -7,6 +9,7 @@ from app.extensions import db
 from app.models import UserProfile
 from app.schemas import UserProfileCreate, UserProfileResponse, UserProfileUpdate
 
+logger = logging.getLogger(__name__)
 user_profile_bp = Blueprint("user_profile", __name__)
 
 
@@ -64,9 +67,10 @@ def update_user_profile():
         session.refresh(profile)
         response = UserProfileResponse.model_validate(profile)
         return jsonify(response.model_dump(mode="json"))
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to update user profile")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -103,8 +107,9 @@ def create_user_profile():
         session.refresh(profile)
         response = UserProfileResponse.model_validate(profile)
         return jsonify(response.model_dump(mode="json")), 201
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to create user profile")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()

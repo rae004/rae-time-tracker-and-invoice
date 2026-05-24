@@ -1,5 +1,6 @@
 """API routes for full-data export, import, and reset."""
 
+import logging
 from datetime import UTC, datetime
 
 from flask import Blueprint, Response, jsonify, request
@@ -20,6 +21,7 @@ from app.services.data_management_service import (
 RESET_CONFIRM_HEADER = "X-Confirm-Reset"
 RESET_CONFIRM_VALUE = "DELETE-ALL-DATA"
 
+logger = logging.getLogger(__name__)
 data_management_bp = Blueprint("data_management", __name__)
 
 
@@ -54,9 +56,10 @@ def import_data():
     try:
         counts = apply_import(session, payload)
         return jsonify(ImportResult(counts=counts).model_dump(mode="json")), 200
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to import data")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -78,8 +81,9 @@ def reset_data():
     try:
         deleted = reset_all(session)
         return jsonify(ResetResult(deleted=deleted).model_dump(mode="json")), 200
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to reset data")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()

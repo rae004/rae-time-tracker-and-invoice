@@ -1,5 +1,6 @@
 """Invoice API routes."""
 
+import logging
 from uuid import UUID
 
 from flask import Blueprint, Response, jsonify, request, send_file
@@ -19,6 +20,7 @@ from app.schemas.invoice import (
 from app.services import invoice_service
 from app.services.pdf_service import generate_invoice_pdf
 
+logger = logging.getLogger(__name__)
 invoices_bp = Blueprint("invoices", __name__)
 
 
@@ -137,9 +139,10 @@ def create_invoice() -> tuple[Response, int]:
     except ValueError as e:
         session.rollback()
         return jsonify({"error": str(e)}), 400
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to create invoice")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -181,9 +184,10 @@ def update_invoice(invoice_id: UUID) -> tuple[Response, int]:
         invoice = invoice_service.get_invoice_with_details(session, invoice.id)
         response = InvoiceResponse.model_validate(invoice)
         return jsonify(response.model_dump(mode="json")), 200
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to update invoice")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -202,9 +206,10 @@ def delete_invoice(invoice_id: UUID) -> tuple[Response, int]:
         return jsonify({"message": "Invoice deleted"}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to delete invoice")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
@@ -235,9 +240,10 @@ def finalize_invoice(invoice_id: UUID) -> tuple[Response, int]:
     except ValueError as e:
         session.rollback()
         return jsonify({"error": str(e)}), 400
-    except Exception as e:
+    except Exception:
         session.rollback()
-        return jsonify({"error": str(e)}), 500
+        logger.exception("Failed to finalize invoice")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()
 
