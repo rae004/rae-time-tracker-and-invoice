@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.7](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.6...v0.1.7) (2026-05-24)
+
+
+### Bug Fixes
+
+* use npm ecosystem for Dependabot frontend updates ([#37](https://github.com/rae004/rae-time-tracker-and-invoice/issues/37)) ([d9dcd30](https://github.com/rae004/rae-time-tracker-and-invoice/commit/d9dcd301b96c303df042cc770ec36a473b7d2433))
+
 ## [0.1.6](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.5...v0.1.6) (2026-05-24)
 
 
