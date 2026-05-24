@@ -142,7 +142,6 @@ jobs:
 
       - name: Audit npm dependencies
         working-directory: ./frontend
-        continue-on-error: true
         run: npm audit --audit-level=high
 
   backend-audit:
@@ -159,5 +158,4 @@ jobs:
         run: uv export --format requirements-txt --no-hashes --no-emit-project -o /tmp/requirements.txt
 
       - name: Audit locked Python dependencies
-        continue-on-error: true
         run: uvx pip-audit -r /tmp/requirements.txt

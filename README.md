@@ -4,6 +4,7 @@
 [![codecov](https://codecov.io/gh/rae004/rae-time-tracker-and-invoice/branch/main/graph/badge.svg)](https://codecov.io/gh/rae004/rae-time-tracker-and-invoice)
 [![Release](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/release-please.yml/badge.svg)](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/release-please.yml)
 [![Version](https://img.shields.io/github/package-json/v/rae004/rae-time-tracker-and-invoice?filename=frontend%2Fpackage.json&color=blue&label=version)](./CHANGELOG.md)
+[![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](./.github/dependabot.yml)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
