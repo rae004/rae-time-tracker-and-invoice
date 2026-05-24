@@ -5,12 +5,12 @@
 [![Release](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/release-please.yml/badge.svg)](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/release-please.yml)
 [![Version](https://img.shields.io/github/package-json/v/rae004/rae-time-tracker-and-invoice?filename=frontend%2Fpackage.json&color=blue&label=version)](./CHANGELOG.md)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](./.github/dependabot.yml)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License](https://img.shields.io/github/license/rae004/rae-time-tracker-and-invoice?color=blue)](./LICENSE)
+[![Python](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Frae004%2Frae-time-tracker-and-invoice%2Fmain%2Fbackend%2Fpyproject.toml&logo=python&logoColor=white&label=Python&color=3776AB)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![Node.js](https://img.shields.io/badge/Node-24-brightgreen?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Frae004%2Frae-time-tracker-and-invoice%2Fmain%2Ffrontend%2Fpackage.json&query=%24.engines.node&logo=nodedotjs&logoColor=white&label=Node&color=brightgreen)](https://nodejs.org/)
+[![React](https://img.shields.io/github/package-json/dependency-version/rae004/rae-time-tracker-and-invoice/react?filename=frontend%2Fpackage.json&logo=react&logoColor=white&label=React&color=61DAFB)](https://react.dev/)
+[![TypeScript](https://img.shields.io/github/package-json/dependency-version/rae004/rae-time-tracker-and-invoice/dev/typescript?filename=frontend%2Fpackage.json&logo=typescript&logoColor=white&label=TypeScript&color=3178c6)](https://www.typescriptlang.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
 A single-user time tracking application with invoice generation capabilities, built with Flask, React 19, TypeScript, and PostgreSQL.
