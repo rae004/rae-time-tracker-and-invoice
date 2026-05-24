@@ -97,14 +97,16 @@ Note: PDF generation (WeasyPrint) requires native libraries that are only availa
 
 #### Frontend
 
+The frontend uses [pnpm](https://pnpm.io/) (enable via `corepack enable` if you don't have it).
+
 ```bash
 cd frontend
 
 # Install dependencies
-npm install
+pnpm install
 
 # Start development server
-npm run dev
+pnpm dev
 ```
 
 ## Project Structure
@@ -166,10 +168,10 @@ uv run ruff format . --check
 cd frontend
 
 # Lint
-npm run lint
+pnpm lint
 
 # Type-check
-npx tsc --noEmit
+pnpm exec tsc --noEmit
 ```
 
 ## Testing
@@ -193,13 +195,13 @@ docker compose exec api uv run pytest -v
 cd frontend
 
 # Run tests once
-npm test
+pnpm test
 
 # Run in watch mode
-npm run test:watch
+pnpm test:watch
 
 # Run with coverage report
-npm run test:coverage
+pnpm test:coverage
 ```
 
 ## API Endpoints

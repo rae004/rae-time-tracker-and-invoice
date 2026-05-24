@@ -99,5 +99,5 @@ Change `InvoicePreview.line_items` to `InvoicePreviewLineItem[]`.
 
 ```bash
 cd backend && uv run pytest -q
-cd frontend && npm test -- --run && npm run lint && npx tsc --noEmit
+cd frontend && pnpm test && pnpm lint && pnpm exec tsc --noEmit
 ```
