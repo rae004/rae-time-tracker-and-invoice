@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import { api } from "../services/api";
 import type { ActiveTimerResponse, TimeEntry } from "../types";
 import { timeEntryKeys } from "./useTimeEntries";
@@ -27,29 +27,22 @@ export function useActiveTimer() {
 
 // Hook to track running duration in real-time
 export function useRunningDuration(entry: TimeEntry | null) {
-  const [duration, setDuration] = useState<number>(0);
+  const isRunning = entry?.is_running ?? false;
 
-  useEffect(() => {
-    if (!entry || !entry.is_running) {
-      setDuration(entry?.duration_ms ?? 0);
-      return;
-    }
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      if (!isRunning) return () => {};
+      const interval = setInterval(callback, 50);
+      return () => clearInterval(interval);
+    },
+    [isRunning]
+  );
 
-    // Calculate initial duration
-    const startTime = new Date(entry.start_time).getTime();
-    const calculateDuration = () => {
-      return Date.now() - startTime;
-    };
-
-    setDuration(calculateDuration());
-
-    // Update every second
-    const interval = setInterval(() => {
-      setDuration(calculateDuration());
-    }, 50);
-
-    return () => clearInterval(interval);
+  const getSnapshot = useCallback(() => {
+    if (!entry) return 0;
+    if (!entry.is_running) return entry.duration_ms ?? 0;
+    return Date.now() - new Date(entry.start_time).getTime();
   }, [entry]);
 
-  return duration;
+  return useSyncExternalStore(subscribe, getSnapshot);
 }
