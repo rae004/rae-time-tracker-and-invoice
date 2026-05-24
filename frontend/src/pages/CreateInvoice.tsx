@@ -47,27 +47,39 @@ export function CreateInvoice() {
 
   // Load preview when parameters change
   useEffect(() => {
-    if (clientId && periodStart && periodEnd) {
-      loadPreview(
-        {
-          client_id: clientId,
-          period_start: periodStart,
-          period_end: periodEnd,
-          exclude_entry_ids: Array.from(excludedEntries),
+    if (!clientId || !periodStart || !periodEnd) return;
+    loadPreview(
+      {
+        client_id: clientId,
+        period_start: periodStart,
+        period_end: periodEnd,
+        exclude_entry_ids: Array.from(excludedEntries),
+      },
+      {
+        onSuccess: (data) => {
+          setPreview(data);
         },
-        {
-          onSuccess: (data) => {
-            setPreview(data);
-          },
-          onError: () => {
-            setPreview(null);
-          },
-        }
-      );
-    } else {
-      setPreview(null);
-    }
+        onError: () => {
+          setPreview(null);
+        },
+      }
+    );
   }, [clientId, periodStart, periodEnd, excludedEntries, loadPreview]);
+
+  // Clear stale preview when the user changes any of the trio inputs;
+  // ensures a clean loading state on the next valid combination.
+  const handleClientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setClientId(e.target.value);
+    setPreview(null);
+  };
+  const handlePeriodStartChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPeriodStart(e.target.value);
+    setPreview(null);
+  };
+  const handlePeriodEndChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPeriodEnd(e.target.value);
+    setPreview(null);
+  };
 
   const isItemExcluded = (item: InvoicePreviewLineItem) =>
     item.source_entry_ids.length > 0 &&
@@ -183,7 +195,7 @@ export function CreateInvoice() {
                 <select
                   className="select select-bordered"
                   value={clientId}
-                  onChange={(e) => setClientId(e.target.value)}
+                  onChange={handleClientChange}
                 >
                   <option value="">Select a client...</option>
                   {clients.map((client) => (
@@ -203,7 +215,7 @@ export function CreateInvoice() {
                     type="date"
                     className="input input-bordered"
                     value={periodStart}
-                    onChange={(e) => setPeriodStart(e.target.value)}
+                    onChange={handlePeriodStartChange}
                   />
                 </div>
                 <div className="form-control">
@@ -214,7 +226,7 @@ export function CreateInvoice() {
                     type="date"
                     className="input input-bordered"
                     value={periodEnd}
-                    onChange={(e) => setPeriodEnd(e.target.value)}
+                    onChange={handlePeriodEndChange}
                   />
                 </div>
               </div>

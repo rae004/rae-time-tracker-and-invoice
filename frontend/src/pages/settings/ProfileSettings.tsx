@@ -1,39 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useUserProfile, useUpdateUserProfile } from "../../hooks/useUserProfile";
 import { useToast } from "../../contexts/ToastContext";
+import type { UserProfile } from "../../types";
 
 export function ProfileSettings() {
-  const { showToast } = useToast();
   const { data: profile, isLoading } = useUserProfile();
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
+  }
+
+  return <ProfileForm profile={profile} />;
+}
+
+function ProfileForm({ profile }: { profile: UserProfile | undefined }) {
+  const { showToast } = useToast();
   const updateProfile = useUpdateUserProfile();
 
-  const [formData, setFormData] = useState({
-    name: "",
-    address_line1: "",
-    address_line2: "",
-    city: "",
-    state: "",
-    zip_code: "",
-    email: "",
-    phone: "",
-    payment_instructions: "",
-  });
-
-  useEffect(() => {
-    if (profile) {
-      setFormData({
-        name: profile.name || "",
-        address_line1: profile.address_line1 || "",
-        address_line2: profile.address_line2 || "",
-        city: profile.city || "",
-        state: profile.state || "",
-        zip_code: profile.zip_code || "",
-        email: profile.email || "",
-        phone: profile.phone || "",
-        payment_instructions: profile.payment_instructions || "",
-      });
-    }
-  }, [profile]);
+  const [formData, setFormData] = useState(() => ({
+    name: profile?.name || "",
+    address_line1: profile?.address_line1 || "",
+    address_line2: profile?.address_line2 || "",
+    city: profile?.city || "",
+    state: profile?.state || "",
+    zip_code: profile?.zip_code || "",
+    email: profile?.email || "",
+    phone: profile?.phone || "",
+    payment_instructions: profile?.payment_instructions || "",
+  }));
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -54,14 +52,6 @@ export function ProfileSettings() {
       showToast("Failed to update profile", "error");
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-8">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

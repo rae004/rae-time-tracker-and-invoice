@@ -59,7 +59,7 @@ export function WeeklyView() {
         entries: data.entries_by_day[date],
         totalMs: data.daily_totals[date] ?? 0,
       }));
-  }, [data?.entries_by_day, data?.daily_totals]);
+  }, [data]);
 
   if (error) {
     return (
