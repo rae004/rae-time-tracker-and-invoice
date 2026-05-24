@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.6",
   "type": "module",
+  "packageManager": "pnpm@11.1.2",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -13,8 +14,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "postinstall": "npm rebuild rollup"
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@tanstack/react-form": "1.32.0",

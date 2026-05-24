@@ -2,15 +2,13 @@ FROM node:24-alpine
 
 WORKDIR /app
 
-# Install dependencies
-COPY package*.json ./
-RUN npm install
+RUN corepack enable
 
-# Copy source
+COPY package.json pnpm-lock.yaml .npmrc ./
+RUN pnpm install --frozen-lockfile
+
 COPY . .
 
-# Expose port
 EXPOSE 5173
 
-# Start development server
-CMD ["npm", "run", "dev", "--", "--host"]
+CMD ["pnpm", "dev", "--host"]
