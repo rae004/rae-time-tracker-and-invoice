@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.7...v0.1.8) (2026-05-25)
+
+
+### Features
+
+* show running timer in browser tab title ([#41](https://github.com/rae004/rae-time-tracker-and-invoice/issues/41)) ([c59e758](https://github.com/rae004/rae-time-tracker-and-invoice/commit/c59e7585afbff9693577db19156b28c954f5fcc1))
+
 ## [0.1.7](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.6...v0.1.7) (2026-05-24)
 
 
