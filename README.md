@@ -71,6 +71,8 @@ docker compose logs -f
 docker compose down
 ```
 
+When a Dependabot PR updates `frontend/pnpm-lock.yaml`, the next `docker compose up` will silently rebuild `node_modules` inside the container — no manual step required (see the comment on `CI=true` in `docker-compose.yml`).
+
 The application will be available at:
 - Frontend: http://localhost:5174
 - Backend API: http://localhost:5001

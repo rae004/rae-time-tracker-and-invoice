@@ -29,6 +29,16 @@ services:
       - "5174:5173"
     environment:
       - VITE_API_URL=http://api:5000
+      # The /app/node_modules anonymous volume below persists across
+      # container restarts, so a Dependabot bump (or any host-side
+      # `pnpm install`) leaves it out of sync with pnpm-lock.yaml. On the
+      # next `docker compose up`, pnpm's pre-run deps-status check wants
+      # to wipe and reinstall node_modules and aborts because no TTY is
+      # attached. CI=true tells pnpm to skip the confirmation prompt and
+      # rebuild silently. Tradeoff: `pnpm add` from inside the container
+      # will refuse to update the lockfile under CI mode — install deps
+      # from the host instead.
+      - CI=true
     volumes:
       - ./frontend:/app
       - /app/node_modules
