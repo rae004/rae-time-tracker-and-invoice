@@ -333,6 +333,10 @@
         <div class="totals-section">
             <div class="totals-table">
                 <div class="totals-row">
+                    <span class="totals-label">Total Hours</span>
+                    <span class="totals-value">{{ format_hours(line_items | sum(attribute='hours')) }}</span>
+                </div>
+                <div class="totals-row">
                     <span class="totals-label">Subtotal</span>
                     <span class="totals-value">{{ format_currency(invoice.subtotal) }}</span>
                 </div>

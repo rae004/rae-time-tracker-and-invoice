@@ -33,6 +33,7 @@ frontend/.vite/
 .env.*.local
 docs/archive/
 backend/invoices/
+frontend/.pnpm-store/
 
 # IDE
 .idea/

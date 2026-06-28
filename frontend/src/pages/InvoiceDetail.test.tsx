@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { InvoiceDetail } from "./InvoiceDetail";
-import { createInvoice, createClient } from "../test/fixtures";
+import { createInvoice, createInvoiceLineItem, createClient } from "../test/fixtures";
 
 const mockUseInvoice = vi.fn();
 const mockUseClient = vi.fn();
@@ -231,6 +231,21 @@ describe("InvoiceDetail - client info & totals", () => {
     });
     renderDetail();
     expect(screen.queryByText(/Tax Amount/i)).toBeNull();
+  });
+
+  it("shows total hours summed from line items", () => {
+    mockUseInvoice.mockReturnValue({
+      data: createInvoice({
+        line_items: [
+          createInvoiceLineItem({ hours: "1.5000" }),
+          createInvoiceLineItem({ hours: "2.2500" }),
+        ],
+      }),
+      isLoading: false,
+    });
+    renderDetail();
+    expect(screen.getByText("Total Hours")).toBeInTheDocument();
+    expect(screen.getByText("3.75")).toBeInTheDocument();
   });
 });
 

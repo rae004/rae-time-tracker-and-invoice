@@ -59,6 +59,10 @@ export function InvoiceDetail() {
   }
 
   const taxAmount = parseFloat(invoice.subtotal) * parseFloat(invoice.tax_rate);
+  const totalHours = invoice.line_items.reduce(
+    (sum, item) => sum + parseFloat(item.hours),
+    0,
+  );
 
   return (
     <div className="space-y-6">
@@ -208,6 +212,10 @@ export function InvoiceDetail() {
           {/* Totals */}
           <div className="flex justify-end">
             <div className="w-72 space-y-2">
+              <div className="flex justify-between py-2 border-b border-base-200">
+                <span className="text-base-content/70 uppercase text-sm">Total Hours</span>
+                <span className="font-semibold">{totalHours.toFixed(2)}</span>
+              </div>
               <div className="flex justify-between py-2 border-b border-base-200">
                 <span className="text-base-content/70 uppercase text-sm">Subtotal</span>
                 <span className="font-semibold">{formatCurrency(invoice.subtotal)}</span>
