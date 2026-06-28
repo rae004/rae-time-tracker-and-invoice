@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.9](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.8...v0.1.9) (2026-06-28)
+
+
+### Features
+
+* **invoice:** show total hours on invoice + add precheck.sh ([#62](https://github.com/rae004/rae-time-tracker-and-invoice/issues/62)) ([a55c883](https://github.com/rae004/rae-time-tracker-and-invoice/commit/a55c883164b5063bfc98a052a35828bc93459b21))
+
 ## [0.1.8](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.7...v0.1.8) (2026-05-25)
 
 
