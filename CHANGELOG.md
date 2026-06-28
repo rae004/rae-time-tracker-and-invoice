@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.9...v0.2.0) (2026-06-28)
+
+
+### Features
+
+* -&gt; minor, fix:/chore: -&gt; patch, breaking change -&gt; major. ([7223b4e](https://github.com/rae004/rae-time-tracker-and-invoice/commit/7223b4e8bac74b48c499e1f29f80dd31e1f16ffc))
+* let commits bump the minor in pre-1.0 ([#64](https://github.com/rae004/rae-time-tracker-and-invoice/issues/64)) ([7223b4e](https://github.com/rae004/rae-time-tracker-and-invoice/commit/7223b4e8bac74b48c499e1f29f80dd31e1f16ffc))
+
 ## [0.1.9](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.8...v0.1.9) (2026-06-28)
 
 
