@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.2.0...v0.2.1) (2026-08-02)
+
+
+### Bug Fixes
+
+* **invoice:** correct date filter for periods ending late in the month ([#86](https://github.com/rae004/rae-time-tracker-and-invoice/issues/86)) ([6f8499d](https://github.com/rae004/rae-time-tracker-and-invoice/commit/6f8499ddf67eaa0d82567b96bfa4052290480e7f))
+
 ## [0.2.0](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.1.9...v0.2.0) (2026-06-28)
 
 
