@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router";
 import { CreateInvoice } from "./CreateInvoice";
 import { createClient, createInvoice } from "../test/fixtures";
 import type { InvoicePreview } from "../types";
@@ -11,9 +11,9 @@ const mockCreateAsync = vi.fn();
 const mockShowToast = vi.fn();
 const mockNavigate = vi.fn();
 
-vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual<typeof import("react-router-dom")>(
-    "react-router-dom",
+vi.mock("react-router", async () => {
+  const actual = await vi.importActual<typeof import("react-router")>(
+    "react-router",
   );
   return {
     ...actual,

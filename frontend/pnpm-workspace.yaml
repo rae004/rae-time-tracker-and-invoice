@@ -1,0 +1,13 @@
+# pnpm settings. As of pnpm 10 these live here rather than in package.json's
+# "pnpm" field, which newer pnpm silently ignores.
+#
+# Transitive-only security bumps. Each entry pins a nested dependency past a
+# published advisory that its direct parent has not yet released a fix for;
+# drop an entry once every parent depends on a patched range on its own.
+overrides:
+  # GHSA-3jxr-9vmj-r5cp / brace-expansion DoS via unbounded expansion length.
+  # Reached through eslint > minimatch and eslint > @eslint/config-array.
+  brace-expansion@<5.0.8: ">=5.0.8"
+  # PostCSS path traversal in sourceMappingURL auto-loading.
+  # Reached through vite, @tailwindcss/postcss, and vitest.
+  postcss@<8.5.18: ">=8.5.18"

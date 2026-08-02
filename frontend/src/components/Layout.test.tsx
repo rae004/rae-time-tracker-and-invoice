@@ -1,5 +1,5 @@
 import { render, screen, act } from "@testing-library/react";
-import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router";
 import { Layout } from "./Layout";
 import { createTimeEntry } from "../test/fixtures";
 
