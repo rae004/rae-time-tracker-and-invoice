@@ -125,6 +125,102 @@ class TestPreviewInvoice:
         assert Decimal(data["subtotal"]) == Decimal("150.00")  # 1hr * $150
         assert Decimal(data["total"]) == Decimal("150.00")
 
+    @pytest.mark.parametrize(
+        ("period_start", "period_end"),
+        [
+            ("2026-07-18", "2026-07-31"),  # period ending on the last day of a month
+            ("2026-07-18", "2026-07-28"),  # first day at/after the old day < 28 cutoff
+            ("2026-07-01", "2026-07-30"),
+        ],
+    )
+    def test_preview_period_ending_late_in_month(
+        self, client, session, sample_project, sample_client, period_start, period_end
+    ):
+        """Regression: late-in-month period_end values built an invalid filter."""
+        start = datetime(2026, 7, 31, 14, 0, 0, tzinfo=UTC)
+        session.add(
+            TimeEntry(
+                project_id=sample_project.id,
+                name="End of month work",
+                start_time=start,
+                end_time=start + timedelta(hours=2),
+                duration_ms=7_200_000,
+            )
+        )
+        session.commit()
+
+        payload = {
+            "client_id": str(sample_client.id),
+            "period_start": period_start,
+            "period_end": period_end,
+        }
+        response = client.post("/api/invoices/preview", json=payload)
+
+        assert response.status_code == 200
+        data = response.get_json()
+        # Only the 2026-07-31 entry exists; it counts only when the period
+        # actually covers that date.
+        expected = 1 if period_end == "2026-07-31" else 0
+        assert len(data["line_items"]) == expected
+
+    def test_preview_includes_entries_on_period_end_day(
+        self, client, session, sample_project, sample_client
+    ):
+        """An entry started late on period_end must still be invoiced."""
+        start = datetime(2026, 7, 31, 23, 30, 0, tzinfo=UTC)
+        session.add(
+            TimeEntry(
+                project_id=sample_project.id,
+                name="Late night work",
+                start_time=start,
+                end_time=start + timedelta(minutes=30),
+                duration_ms=1_800_000,
+            )
+        )
+        session.commit()
+
+        response = client.post(
+            "/api/invoices/preview",
+            json={
+                "client_id": str(sample_client.id),
+                "period_start": "2026-07-18",
+                "period_end": "2026-07-31",
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.get_json()
+        assert len(data["line_items"]) == 1
+        assert data["line_items"][0]["time_entry_name"] == "Late night work"
+
+    def test_preview_excludes_entries_after_period_end(
+        self, client, session, sample_project, sample_client
+    ):
+        """The upper bound stays exclusive of the day after period_end."""
+        start = datetime(2026, 8, 1, 0, 15, 0, tzinfo=UTC)
+        session.add(
+            TimeEntry(
+                project_id=sample_project.id,
+                name="Next month work",
+                start_time=start,
+                end_time=start + timedelta(hours=1),
+                duration_ms=3_600_000,
+            )
+        )
+        session.commit()
+
+        response = client.post(
+            "/api/invoices/preview",
+            json={
+                "client_id": str(sample_client.id),
+                "period_start": "2026-07-18",
+                "period_end": "2026-07-31",
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.get_json()["line_items"] == []
+
     def test_preview_no_entries(self, client, session, sample_client):
         payload = {
             "client_id": str(sample_client.id),

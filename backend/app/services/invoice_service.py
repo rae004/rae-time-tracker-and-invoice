@@ -1,6 +1,6 @@
 """Business logic for invoice operations."""
 
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from uuid import UUID
 
@@ -28,8 +28,14 @@ def get_time_entries_for_invoice(
     Only includes entries that:
     - Belong to a project owned by the client
     - Have been completed (end_time is not null)
-    - Fall within the date range (based on start_time date)
+    - Fall within the date range (based on start_time date), inclusive of both
+      period_start and period_end
     """
+    # start_time is a timestamp, so the upper bound is exclusive against the day
+    # after period_end; that keeps entries recorded later in the day on
+    # period_end itself.
+    period_end_exclusive = period_end + timedelta(days=1)
+
     query = (
         session.query(TimeEntry)
         .join(Project)
@@ -38,10 +44,7 @@ def get_time_entries_for_invoice(
                 Project.client_id == client_id,
                 TimeEntry.end_time.isnot(None),  # Only completed entries
                 TimeEntry.start_time >= period_start,
-                TimeEntry.start_time
-                < date(period_end.year, period_end.month, period_end.day + 1)
-                if period_end.day < 28
-                else period_end,  # Handle end of month
+                TimeEntry.start_time < period_end_exclusive,
             )
         )
         .options(joinedload(TimeEntry.project))

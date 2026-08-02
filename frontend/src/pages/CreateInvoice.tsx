@@ -326,11 +326,20 @@ export function CreateInvoice() {
                 <div className="text-center py-8 text-base-content/50">
                   Select a client to preview time entries.
                 </div>
-              ) : !preview ? (
+              ) : previewInvoice.isPending ? (
                 <div className="text-center py-8 text-base-content/50">
-                  {previewInvoice.isPending ? "Loading..." : "No time entries found for this period."}
+                  Loading...
                 </div>
-              ) : preview.line_items.length === 0 ? (
+              ) : previewInvoice.isError ? (
+                // A failed request is not the same as an empty period — saying
+                // "no entries" here hides backend errors as missing data.
+                <div className="alert alert-error">
+                  <span>
+                    Could not load the preview. Please try again, or check the
+                    server logs if this keeps happening.
+                  </span>
+                </div>
+              ) : !preview || preview.line_items.length === 0 ? (
                 <div className="text-center py-8 text-base-content/50">
                   No completed time entries found for this client and period.
                 </div>
