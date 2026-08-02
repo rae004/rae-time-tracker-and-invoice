@@ -20,11 +20,17 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-# Copy dependency files first for caching
-COPY pyproject.toml .python-version ./
+# Copy dependency files first for caching. uv.lock has to be among them:
+# without it uv resolves the >= ranges in pyproject.toml from scratch and
+# writes its own lock, so the committed one — the one that gets audited —
+# never governs the image.
+COPY pyproject.toml uv.lock .python-version ./
 
-# Install dependencies
-RUN uv sync --no-install-project --no-dev
+# Install dependencies. --locked installs the lock exactly as committed and
+# fails the build if it has drifted from pyproject.toml. Note --frozen is the
+# weaker flag: it skips re-resolving but does not verify freshness, so a lock
+# that no longer matches pyproject.toml would install stale and pass silently.
+RUN uv sync --locked --no-install-project --no-dev
 
 # Copy application code
 COPY . .
