@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router";
 import { useInvoice, useFinalizeInvoice, useDeleteInvoice, getInvoicePdfUrl } from "../hooks/useInvoices";
 import { useClient } from "../hooks/useClients";
 import { useToast } from "../contexts/ToastContext";

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { useInvoices, useDeleteInvoice, getInvoicePdfUrl } from "../hooks/useInvoices";
 import { useToast } from "../contexts/ToastContext";
 import type { InvoiceWithClient } from "../types";
