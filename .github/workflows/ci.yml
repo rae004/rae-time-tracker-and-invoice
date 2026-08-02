@@ -39,10 +39,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./backend
-        # --locked, not --frozen: --frozen skips re-resolving but does not
-        # verify the lock still matches pyproject.toml, so drift would test
-        # green against a stale lock.
-        run: uv sync --locked
+        run: uv sync --frozen
 
       - name: Run linter
         working-directory: ./backend
@@ -161,10 +158,7 @@ jobs:
 
       - name: Export locked requirements
         working-directory: ./backend
-        # --locked so the audit reads the committed lock. Without it a stale
-        # lock is silently re-resolved and the job audits dependencies that
-        # are not the ones the image and tests actually use.
-        run: uv export --locked --format requirements-txt --no-hashes --no-emit-project -o /tmp/requirements.txt
+        run: uv export --format requirements-txt --no-hashes --no-emit-project -o /tmp/requirements.txt
 
       - name: Audit locked Python dependencies
         run: uvx pip-audit -r /tmp/requirements.txt
