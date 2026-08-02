@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.2.1...v0.2.2) (2026-08-02)
+
+
+### Bug Fixes
+
+* **docker:** make both images build from their committed lockfiles ([#91](https://github.com/rae004/rae-time-tracker-and-invoice/issues/91)) ([6778864](https://github.com/rae004/rae-time-tracker-and-invoice/commit/6778864700c644a826df2156c88a0f1bc188c125))
+
 ## [0.2.1](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.2.0...v0.2.1) (2026-08-02)
 
 
