@@ -15,3 +15,6 @@ overrides:
   # @vitest/coverage-v8 > vitest > jsdom. Held to the 7.x line because
   # that is the range jsdom depends on.
   undici@<7.29.0: ">=7.29.0 <8"
+  # nanoid infinite loop with custom generators. Reached through
+  # @tailwindcss/postcss > postcss. Held to 3.x, the range postcss uses.
+  nanoid@<3.3.17: ">=3.3.17 <4"
