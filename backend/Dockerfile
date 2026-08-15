@@ -26,11 +26,11 @@ WORKDIR /app
 # never governs the image.
 COPY pyproject.toml uv.lock .python-version ./
 
-# Install dependencies. --locked installs the lock exactly as committed and
-# fails the build if it has drifted from pyproject.toml. Note --frozen is the
-# weaker flag: it skips re-resolving but does not verify freshness, so a lock
-# that no longer matches pyproject.toml would install stale and pass silently.
-RUN uv sync --locked --no-install-project --no-dev
+# Install dependencies. --frozen installs the lock as committed without
+# re-resolving. Deliberately not --locked: release-please bumps the version in
+# pyproject.toml without touching uv.lock, and --locked turns that routine
+# drift into a hard build failure for everyone until the lock is re-synced.
+RUN uv sync --frozen --no-install-project --no-dev
 
 # Copy application code
 COPY . .
