@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.2.2...v0.2.3) (2026-08-15)
+
+
+### Bug Fixes
+
+* **docker:** use --frozen so a release bump can't break the api build ([#93](https://github.com/rae004/rae-time-tracker-and-invoice/issues/93)) ([a2e3afe](https://github.com/rae004/rae-time-tracker-and-invoice/commit/a2e3afe1424941d7d607d03fe83e4a40109461d2))
+
 ## [0.2.2](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.2.1...v0.2.2) (2026-08-02)
 
 
