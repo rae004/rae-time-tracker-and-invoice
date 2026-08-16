@@ -1,6 +1,7 @@
 """Invoice API routes."""
 
 import logging
+from pathlib import Path
 from uuid import UUID
 
 from flask import Blueprint, Response, jsonify, request, send_file
@@ -257,8 +258,10 @@ def download_invoice_pdf(invoice_id: UUID) -> Response | tuple[Response, int]:
         if not invoice:
             return jsonify({"error": "Invoice not found"}), 404
 
-        if not invoice.pdf_path:
-            # Generate PDF on-the-fly if not exists
+        # Regenerate when there is no path, and also when the path points at a
+        # file that is no longer there -- a stored path to a missing file should
+        # heal itself rather than 500 on send_file.
+        if not invoice.pdf_path or not Path(invoice.pdf_path).is_file():
             invoice = invoice_service.get_invoice_with_details(session, invoice_id)
             pdf_path = generate_invoice_pdf(session, invoice)
             invoice.pdf_path = pdf_path
@@ -270,5 +273,70 @@ def download_invoice_pdf(invoice_id: UUID) -> Response | tuple[Response, int]:
             as_attachment=True,
             download_name=f"invoice_{invoice.invoice_number}.pdf",
         )
+    finally:
+        session.close()
+
+
+@invoices_bp.route("/invoices/<uuid:invoice_id>/pdf/regenerate", methods=["POST"])
+def regenerate_invoice_pdf(invoice_id: UUID) -> tuple[Response, int]:
+    """Rebuild the PDF file from the invoice's stored snapshot.
+
+    A cache rebuild, not an amendment: the invoice is rendered from what it
+    already holds, so this is idempotent and produces the same document every
+    time. Use it when the file is missing or stale on disk.
+    """
+    session = db.get_session()
+    try:
+        invoice = invoice_service.get_invoice_with_details(session, invoice_id)
+        if not invoice:
+            return jsonify({"error": "Invoice not found"}), 404
+
+        if not invoice.is_finalized:
+            return jsonify(
+                {"error": "Only a finalized invoice has a PDF to regenerate"}
+            ), 400
+
+        invoice.pdf_path = generate_invoice_pdf(session, invoice)
+        session.commit()
+
+        invoice = invoice_service.get_invoice_with_details(session, invoice.id)
+        response = InvoiceResponse.model_validate(invoice)
+        return jsonify(response.model_dump(mode="json")), 200
+    except Exception:
+        session.rollback()
+        logger.exception("Failed to regenerate invoice PDF")
+        return jsonify({"error": "Internal server error"}), 500
+    finally:
+        session.close()
+
+
+@invoices_bp.route("/invoices/<uuid:invoice_id>/refresh-letterhead", methods=["POST"])
+def refresh_invoice_letterhead(invoice_id: UUID) -> tuple[Response, int]:
+    """Re-capture the letterhead from the current profile and client.
+
+    Distinct from regenerating: this changes what an issued document says, so
+    it stamps letterhead_refreshed_at. It never touches hourly_rate, line items
+    or totals.
+    """
+    session = db.get_session()
+    try:
+        invoice = invoice_service.get_invoice_with_details(session, invoice_id)
+        if not invoice:
+            return jsonify({"error": "Invoice not found"}), 404
+
+        invoice_service.refresh_letterhead(session, invoice)
+        invoice.pdf_path = generate_invoice_pdf(session, invoice)
+        session.commit()
+
+        invoice = invoice_service.get_invoice_with_details(session, invoice.id)
+        response = InvoiceResponse.model_validate(invoice)
+        return jsonify(response.model_dump(mode="json")), 200
+    except ValueError as e:
+        session.rollback()
+        return jsonify({"error": str(e)}), 400
+    except Exception:
+        session.rollback()
+        logger.exception("Failed to refresh invoice letterhead")
+        return jsonify({"error": "Internal server error"}), 500
     finally:
         session.close()

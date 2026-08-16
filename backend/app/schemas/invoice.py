@@ -77,9 +77,11 @@ class InvoiceResponse(BaseModel):
     tax_rate: Decimal
     other_charges: Decimal
     total: Decimal
+    service_description: str | None = None
     status: str
     pdf_path: str | None
     created_at: datetime
+    letterhead_refreshed_at: datetime | None = None
     line_items: list[InvoiceLineItemResponse] = Field(default_factory=list)
 
 

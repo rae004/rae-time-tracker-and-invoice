@@ -395,3 +395,140 @@ class TestRefreshLetterhead:
 
         with pytest.raises(ValueError, match="finalized"):
             invoice_service.refresh_letterhead(session, invoice)
+
+
+class TestLetterheadEndpoints:
+    """POST /invoices/:id/pdf/regenerate and /refresh-letterhead."""
+
+    def _finalize(self, session, sample_client, monkeypatch, tmp_path):
+        monkeypatch.setattr(
+            "app.routes.invoices.generate_invoice_pdf",
+            lambda s, inv: str(tmp_path / f"invoice_{inv.invoice_number}.pdf"),
+        )
+        invoice = invoice_service.create_invoice_from_entries(
+            session, sample_client.id, date(2026, 4, 1), date(2026, 4, 27)
+        )
+        invoice_service.finalize_invoice(session, invoice)
+        session.commit()
+        return invoice
+
+    def test_regenerate_returns_the_invoice(
+        self,
+        client,
+        session,
+        sample_client,
+        sample_user_profile,
+        completed_entry,
+        monkeypatch,
+        tmp_path,
+    ):
+        invoice = self._finalize(session, sample_client, monkeypatch, tmp_path)
+
+        response = client.post(f"/api/invoices/{invoice.id}/pdf/regenerate")
+
+        assert response.status_code == 200
+        assert response.get_json()["id"] == str(invoice.id)
+
+    def test_regenerate_does_not_change_the_document(
+        self,
+        client,
+        session,
+        sample_client,
+        sample_user_profile,
+        completed_entry,
+        monkeypatch,
+        tmp_path,
+    ):
+        """A cache rebuild must be idempotent, even after a profile edit."""
+        invoice = self._finalize(session, sample_client, monkeypatch, tmp_path)
+        before = dict(invoice.issuer_snapshot)
+
+        sample_user_profile.name = "Edited Since"
+        session.commit()
+
+        client.post(f"/api/invoices/{invoice.id}/pdf/regenerate")
+
+        after = session.get(Invoice, invoice.id)
+        assert after.issuer_snapshot == before
+        assert after.letterhead_refreshed_at is None
+
+    def test_regenerate_rejects_a_draft(
+        self, client, session, sample_client, sample_user_profile, completed_entry
+    ):
+        invoice = invoice_service.create_invoice_from_entries(
+            session, sample_client.id, date(2026, 4, 1), date(2026, 4, 27)
+        )
+        session.commit()
+
+        response = client.post(f"/api/invoices/{invoice.id}/pdf/regenerate")
+
+        assert response.status_code == 400
+
+    def test_refresh_updates_the_document_and_stamps(
+        self,
+        client,
+        session,
+        sample_client,
+        sample_user_profile,
+        completed_entry,
+        monkeypatch,
+        tmp_path,
+    ):
+        invoice = self._finalize(session, sample_client, monkeypatch, tmp_path)
+
+        sample_user_profile.name = "Corrected Name"
+        session.commit()
+
+        response = client.post(f"/api/invoices/{invoice.id}/refresh-letterhead")
+
+        assert response.status_code == 200
+        assert response.get_json()["letterhead_refreshed_at"] is not None
+        after = session.get(Invoice, invoice.id)
+        assert after.issuer_snapshot["name"] == "Corrected Name"
+
+    def test_refresh_rejects_a_draft(
+        self, client, session, sample_client, sample_user_profile, completed_entry
+    ):
+        invoice = invoice_service.create_invoice_from_entries(
+            session, sample_client.id, date(2026, 4, 1), date(2026, 4, 27)
+        )
+        session.commit()
+
+        response = client.post(f"/api/invoices/{invoice.id}/refresh-letterhead")
+
+        assert response.status_code == 400
+
+    def test_unknown_invoice_is_404(self, client, session):
+        missing = "00000000-0000-0000-0000-000000000009"
+        assert client.post(f"/api/invoices/{missing}/pdf/regenerate").status_code == 404
+        assert (
+            client.post(f"/api/invoices/{missing}/refresh-letterhead").status_code
+            == 404
+        )
+
+    def test_download_regenerates_when_the_file_is_missing(
+        self,
+        client,
+        session,
+        sample_client,
+        sample_user_profile,
+        completed_entry,
+        monkeypatch,
+        tmp_path,
+    ):
+        """A stored path pointing at nothing should heal, not 500."""
+        invoice = self._finalize(session, sample_client, monkeypatch, tmp_path)
+        invoice.pdf_path = str(tmp_path / "gone.pdf")
+        session.commit()
+
+        real = tmp_path / "regenerated.pdf"
+        real.write_bytes(b"%PDF-1.7\nregenerated")
+        monkeypatch.setattr(
+            "app.routes.invoices.generate_invoice_pdf", lambda s, inv: str(real)
+        )
+
+        response = client.get(f"/api/invoices/{invoice.id}/pdf")
+
+        assert response.status_code == 200
+        after = session.get(Invoice, invoice.id)
+        assert after.pdf_path == str(real)
