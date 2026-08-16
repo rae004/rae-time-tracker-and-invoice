@@ -14,6 +14,7 @@ import pytest
 
 from app.models import Invoice, InvoiceLineItem
 from app.models.invoice import InvoiceStatus
+from app.services import invoice_service
 from app.services.pdf_service import build_render_context, render_invoice_html
 
 FROZEN_ISSUER = {
@@ -247,3 +248,150 @@ class TestRenderInvoiceHtml:
 
         assert "$125.00" in html
         assert "Frozen Issuer" in html
+
+
+class TestCaptureAtFinalize:
+    """Snapshots are taken when the invoice is issued, not before."""
+
+    def test_draft_has_no_snapshot(
+        self, session, sample_client, sample_user_profile, completed_entry
+    ):
+        invoice = invoice_service.create_invoice_from_entries(
+            session, sample_client.id, date(2026, 4, 1), date(2026, 4, 27)
+        )
+        session.commit()
+
+        assert invoice.issuer_snapshot is None
+        assert invoice.bill_to_snapshot is None
+
+    def test_finalize_captures_both_snapshots(
+        self, session, sample_client, sample_user_profile, completed_entry
+    ):
+        invoice = invoice_service.create_invoice_from_entries(
+            session, sample_client.id, date(2026, 4, 1), date(2026, 4, 27)
+        )
+        invoice_service.finalize_invoice(session, invoice)
+        session.commit()
+
+        assert invoice.issuer_snapshot["name"] == "John Doe"
+        assert invoice.issuer_snapshot["email"] == "john@example.com"
+        assert invoice.bill_to_snapshot["name"] == "Test Company"
+        assert invoice.bill_to_snapshot["zip_code"] == "12345"
+
+    def test_finalized_invoice_ignores_later_profile_edits(
+        self, session, sample_client, sample_user_profile, completed_entry
+    ):
+        """The end-to-end version of the bug this feature fixes."""
+        invoice = invoice_service.create_invoice_from_entries(
+            session, sample_client.id, date(2026, 4, 1), date(2026, 4, 27)
+        )
+        invoice_service.finalize_invoice(session, invoice)
+        session.commit()
+
+        sample_user_profile.name = "Changed After Issue"
+        sample_client.name = "Renamed Client"
+        session.commit()
+
+        html = render_invoice_html(session, invoice)
+        assert "John Doe" in html
+        assert "Test Company" in html
+        assert "Changed After Issue" not in html
+        assert "Renamed Client" not in html
+
+    def test_service_description_frozen_at_create(
+        self, session, sample_client, sample_user_profile, completed_entry
+    ):
+        """Content freezes at create, following hourly_rate."""
+        invoice = invoice_service.create_invoice_from_entries(
+            session, sample_client.id, date(2026, 4, 1), date(2026, 4, 27)
+        )
+        session.commit()
+        assert invoice.service_description == "Software development services"
+
+        sample_client.service_description = "Something else entirely"
+        session.commit()
+
+        ctx = build_render_context(session, invoice)
+        assert ctx["service_description"] == "Software development services"
+
+
+class TestRefreshLetterhead:
+    """Refresh is an amendment: deliberate, stamped, and never about money."""
+
+    def _finalized(self, session, sample_client):
+        invoice = invoice_service.create_invoice_from_entries(
+            session, sample_client.id, date(2026, 4, 1), date(2026, 4, 27)
+        )
+        invoice_service.finalize_invoice(session, invoice)
+        session.commit()
+        return invoice
+
+    def test_refresh_recaptures_and_stamps(
+        self, session, sample_client, sample_user_profile, completed_entry
+    ):
+        invoice = self._finalized(session, sample_client)
+        assert invoice.letterhead_refreshed_at is None
+
+        sample_user_profile.name = "Corrected Name"
+        session.commit()
+
+        invoice_service.refresh_letterhead(session, invoice)
+        session.commit()
+
+        assert invoice.issuer_snapshot["name"] == "Corrected Name"
+        assert invoice.letterhead_refreshed_at is not None
+
+    def test_refresh_never_touches_money(
+        self, session, sample_client, sample_user_profile, completed_entry
+    ):
+        """The invariant that makes this safe to expose as a button."""
+        invoice = self._finalized(session, sample_client)
+        before = (
+            invoice.hourly_rate,
+            invoice.subtotal,
+            invoice.total,
+            invoice.tax_rate,
+            invoice.other_charges,
+            [(li.hours, li.amount) for li in invoice.line_items],
+        )
+
+        # Re-rating the client must not follow through to an issued invoice.
+        sample_client.hourly_rate = Decimal("999.00")
+        session.commit()
+
+        invoice_service.refresh_letterhead(session, invoice)
+        session.commit()
+
+        assert (
+            invoice.hourly_rate,
+            invoice.subtotal,
+            invoice.total,
+            invoice.tax_rate,
+            invoice.other_charges,
+            [(li.hours, li.amount) for li in invoice.line_items],
+        ) == before
+
+    def test_refresh_leaves_service_description_alone(
+        self, session, sample_client, sample_user_profile, completed_entry
+    ):
+        """It is content, not letterhead -- refresh must not drag it along."""
+        invoice = self._finalized(session, sample_client)
+
+        sample_client.service_description = "Rewritten later"
+        session.commit()
+
+        invoice_service.refresh_letterhead(session, invoice)
+        session.commit()
+
+        assert invoice.service_description == "Software development services"
+
+    def test_refresh_rejects_a_draft(
+        self, session, sample_client, sample_user_profile, completed_entry
+    ):
+        invoice = invoice_service.create_invoice_from_entries(
+            session, sample_client.id, date(2026, 4, 1), date(2026, 4, 27)
+        )
+        session.commit()
+
+        with pytest.raises(ValueError, match="finalized"):
+            invoice_service.refresh_letterhead(session, invoice)

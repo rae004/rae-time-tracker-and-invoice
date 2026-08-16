@@ -1,5 +1,6 @@
 """Test fixtures for Rae Time Tracker backend."""
 
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
@@ -9,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from app import create_app
 from app.config import TestingConfig
 from app.extensions import Base, db
-from app.models import CategoryTag, Client, Project, UserProfile
+from app.models import CategoryTag, Client, Project, TimeEntry, UserProfile
 
 
 @pytest.fixture
@@ -103,3 +104,19 @@ def sample_user_profile(session):
     session.add(profile)
     session.commit()
     return profile
+
+
+@pytest.fixture
+def completed_entry(session, sample_project):
+    """A completed 1-hour time entry on 2026-04-15."""
+    start = datetime(2026, 4, 15, 14, 0, 0, tzinfo=UTC)
+    entry = TimeEntry(
+        project_id=sample_project.id,
+        name="Test work",
+        start_time=start,
+        end_time=start + timedelta(hours=1),
+        duration_ms=3_600_000,
+    )
+    session.add(entry)
+    session.commit()
+    return entry

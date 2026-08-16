@@ -11,22 +11,6 @@ from app.services import invoice_service
 
 
 @pytest.fixture
-def completed_entry(session, sample_project):
-    """A completed 1-hour time entry on 2026-04-15."""
-    start = datetime(2026, 4, 15, 14, 0, 0, tzinfo=UTC)
-    entry = TimeEntry(
-        project_id=sample_project.id,
-        name="Test work",
-        start_time=start,
-        end_time=start + timedelta(hours=1),
-        duration_ms=3_600_000,
-    )
-    session.add(entry)
-    session.commit()
-    return entry
-
-
-@pytest.fixture
 def running_entry(session, sample_project):
     """A running (no end_time) time entry — should be excluded from invoices."""
     entry = TimeEntry(
