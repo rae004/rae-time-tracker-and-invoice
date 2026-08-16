@@ -8,6 +8,8 @@ const mockUseInvoice = vi.fn();
 const mockUseClient = vi.fn();
 const mockFinalizeAsync = vi.fn();
 const mockDeleteAsync = vi.fn();
+const mockRegenerateAsync = vi.fn();
+const mockRefreshLetterheadAsync = vi.fn();
 const mockShowToast = vi.fn();
 const mockNavigate = vi.fn();
 
@@ -29,6 +31,14 @@ vi.mock("../hooks/useInvoices", () => ({
   }),
   useDeleteInvoice: () => ({
     mutateAsync: mockDeleteAsync,
+    isPending: false,
+  }),
+  useRegenerateInvoicePdf: () => ({
+    mutateAsync: mockRegenerateAsync,
+    isPending: false,
+  }),
+  useRefreshLetterhead: () => ({
+    mutateAsync: mockRefreshLetterheadAsync,
     isPending: false,
   }),
   getInvoicePdfUrl: (id: string) => `/api/invoices/${id}/pdf`,
@@ -57,6 +67,8 @@ beforeEach(() => {
   mockUseClient.mockReset().mockReturnValue({ data: createClient() });
   mockFinalizeAsync.mockReset().mockResolvedValue(undefined);
   mockDeleteAsync.mockReset().mockResolvedValue(undefined);
+  mockRegenerateAsync.mockReset().mockResolvedValue(undefined);
+  mockRefreshLetterheadAsync.mockReset().mockResolvedValue(undefined);
   mockShowToast.mockReset();
   mockNavigate.mockReset();
 });
@@ -259,5 +271,100 @@ describe("InvoiceDetail - back navigation", () => {
     renderDetail();
     await user.click(screen.getByRole("button", { name: /back/i }));
     expect(mockNavigate).toHaveBeenCalledWith("/invoices");
+  });
+});
+
+describe("InvoiceDetail - letterhead actions", () => {
+  const finalized = (overrides = {}) =>
+    mockUseInvoice.mockReturnValue({
+      data: createInvoice({
+        id: "f1",
+        invoice_number: 7,
+        status: "finalized",
+        pdf_path: "/x.pdf",
+        ...overrides,
+      }),
+      isLoading: false,
+    });
+
+  it("shows both actions on a finalized invoice", () => {
+    finalized();
+    renderDetail("f1");
+    expect(
+      screen.getByRole("button", { name: /regenerate pdf/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /update letterhead/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides both actions on a draft", () => {
+    mockUseInvoice.mockReturnValue({
+      data: createInvoice({ id: "d1", status: "draft" }),
+      isLoading: false,
+    });
+    renderDetail("d1");
+    expect(screen.queryByRole("button", { name: /regenerate pdf/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /update letterhead/i }),
+    ).toBeNull();
+  });
+
+  it("regenerates without asking - it cannot change the document", async () => {
+    finalized();
+    const confirmSpy = vi.spyOn(window, "confirm");
+    const user = userEvent.setup();
+    renderDetail("f1");
+    await user.click(screen.getByRole("button", { name: /regenerate pdf/i }));
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(mockRegenerateAsync).toHaveBeenCalledWith("f1");
+    vi.restoreAllMocks();
+  });
+
+  it("asks before refreshing the letterhead - it alters an issued invoice", async () => {
+    finalized();
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const user = userEvent.setup();
+    renderDetail("f1");
+    await user.click(screen.getByRole("button", { name: /update letterhead/i }));
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(mockRefreshLetterheadAsync).toHaveBeenCalledWith("f1");
+    vi.restoreAllMocks();
+  });
+
+  it("does not refresh when cancelled", async () => {
+    finalized();
+    vi.spyOn(window, "confirm").mockReturnValue(false);
+    const user = userEvent.setup();
+    renderDetail("f1");
+    await user.click(screen.getByRole("button", { name: /update letterhead/i }));
+    expect(mockRefreshLetterheadAsync).not.toHaveBeenCalled();
+    vi.restoreAllMocks();
+  });
+
+  it("shows an error toast when refresh fails", async () => {
+    finalized();
+    mockRefreshLetterheadAsync.mockRejectedValueOnce(new Error("fail"));
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const user = userEvent.setup();
+    renderDetail("f1");
+    await user.click(screen.getByRole("button", { name: /update letterhead/i }));
+    expect(mockShowToast).toHaveBeenCalledWith(
+      "Failed to update letterhead",
+      "error",
+    );
+    vi.restoreAllMocks();
+  });
+
+  it("badges an invoice whose letterhead was updated after issue", () => {
+    finalized({ letterhead_refreshed_at: "2026-08-16T17:06:09Z" });
+    renderDetail("f1");
+    expect(screen.getByText(/letterhead updated/i)).toBeInTheDocument();
+  });
+
+  it("shows no badge when the letterhead was never touched", () => {
+    finalized({ letterhead_refreshed_at: null });
+    renderDetail("f1");
+    expect(screen.queryByText(/letterhead updated/i)).toBeNull();
   });
 });

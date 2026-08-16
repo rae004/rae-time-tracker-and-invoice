@@ -1,5 +1,12 @@
 import { useParams, useNavigate, Link } from "react-router";
-import { useInvoice, useFinalizeInvoice, useDeleteInvoice, getInvoicePdfUrl } from "../hooks/useInvoices";
+import {
+  useInvoice,
+  useFinalizeInvoice,
+  useDeleteInvoice,
+  useRegenerateInvoicePdf,
+  useRefreshLetterhead,
+  getInvoicePdfUrl,
+} from "../hooks/useInvoices";
 import { useClient } from "../hooks/useClients";
 import { useToast } from "../contexts/ToastContext";
 import { formatCurrency, formatDateLong, formatDate } from "../utils/formatters";
@@ -13,6 +20,8 @@ export function InvoiceDetail() {
   const { data: client } = useClient(invoice?.client_id || "");
   const finalizeInvoice = useFinalizeInvoice();
   const deleteInvoice = useDeleteInvoice();
+  const regeneratePdf = useRegenerateInvoicePdf();
+  const refreshLetterhead = useRefreshLetterhead();
 
   const handleFinalize = async () => {
     if (!invoice) return;
@@ -23,6 +32,39 @@ export function InvoiceDetail() {
       showToast("Invoice finalized and PDF generated!", "success");
     } catch {
       showToast("Failed to finalize invoice", "error");
+    }
+  };
+
+  // Rebuilding the file is routine and produces the same document, so it acts
+  // immediately. Re-capturing the letterhead alters an invoice the client may
+  // already be holding, so that one asks first.
+  const handleRegeneratePdf = async () => {
+    if (!invoice) return;
+
+    try {
+      await regeneratePdf.mutateAsync(invoice.id);
+      showToast("PDF regenerated", "success");
+    } catch {
+      showToast("Failed to regenerate PDF", "error");
+    }
+  };
+
+  const handleRefreshLetterhead = async () => {
+    if (!invoice) return;
+    if (
+      !confirm(
+        `Update invoice #${invoice.invoice_number} to your current business and client details?\n\n` +
+          "This changes what an already-issued invoice says. If the client has a copy, theirs will no longer match.\n\n" +
+          "Amounts, hours and line items are not affected."
+      )
+    )
+      return;
+
+    try {
+      await refreshLetterhead.mutateAsync(invoice.id);
+      showToast("Letterhead updated", "success");
+    } catch {
+      showToast("Failed to update letterhead", "error");
     }
   };
 
@@ -86,6 +128,16 @@ export function InvoiceDetail() {
           >
             {invoice.status}
           </span>
+          {invoice.letterhead_refreshed_at && (
+            <span
+              className="badge badge-ghost"
+              title={`Letterhead updated after this invoice was issued, on ${formatDateLong(
+                invoice.letterhead_refreshed_at
+              )}`}
+            >
+              letterhead updated
+            </span>
+          )}
         </div>
 
         <div className="flex gap-2">
@@ -107,6 +159,34 @@ export function InvoiceDetail() {
                   <span className="loading loading-spinner loading-sm"></span>
                 ) : (
                   "Finalize & Generate PDF"
+                )}
+              </button>
+            </>
+          )}
+          {invoice.status === "finalized" && (
+            <>
+              <button
+                className="btn btn-ghost"
+                onClick={handleRefreshLetterhead}
+                disabled={refreshLetterhead.isPending}
+                title="Re-apply your current business and client details to this issued invoice"
+              >
+                {refreshLetterhead.isPending ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  "Update Letterhead"
+                )}
+              </button>
+              <button
+                className="btn btn-outline"
+                onClick={handleRegeneratePdf}
+                disabled={regeneratePdf.isPending}
+                title="Rebuild the PDF file from this invoice. The document is unchanged."
+              >
+                {regeneratePdf.isPending ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  "Regenerate PDF"
                 )}
               </button>
             </>
