@@ -37,9 +37,32 @@ jobs:
       - name: Set up Python
         run: uv python install 3.13
 
+      # WeasyPrint binds to these at import time. Without them the PDF tests
+      # skip themselves and PDF generation ships with no coverage at all --
+      # which is how the WeasyPrint 68 -> 69 major bump went out untested.
+      # Same set the api Dockerfile installs.
+      - name: Install WeasyPrint system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libpango-1.0-0 \
+            libpangocairo-1.0-0 \
+            libgdk-pixbuf-2.0-0 \
+            libffi-dev \
+            shared-mime-info \
+            fontconfig \
+            fonts-liberation
+
       - name: Install dependencies
         working-directory: ./backend
         run: uv sync --frozen
+
+      # The PDF tests skip themselves when WeasyPrint cannot be imported, so a
+      # broken native dependency would quietly cost coverage instead of failing.
+      # Assert it loads.
+      - name: Verify WeasyPrint is importable
+        working-directory: ./backend
+        run: uv run python -c "import weasyprint; print(weasyprint.__version__)"
 
       - name: Run linter
         working-directory: ./backend

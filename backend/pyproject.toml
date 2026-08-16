@@ -22,6 +22,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
+    "pypdf>=6.16.1",
 ]
 
 [dependency-groups]
@@ -30,6 +31,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
+    "pypdf>=6.16.1",
 ]
 
 [tool.mypy]

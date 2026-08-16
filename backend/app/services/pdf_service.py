@@ -38,40 +38,108 @@ def format_tax_rate(rate) -> str:
     return f"{float(rate) * 100:.2f}%"
 
 
-def generate_invoice_pdf(session: Session, invoice: Invoice) -> str:
-    """Generate a PDF for an invoice.
+# The fields each snapshot captures. Also the contract the template renders
+# against: every key here is always present in the resolved context, so the
+# template never has to know whether a value came from a snapshot or from the
+# live record.
+ISSUER_FIELDS = (
+    "name",
+    "address_line1",
+    "address_line2",
+    "city",
+    "state",
+    "zip_code",
+    "phone",
+    "email",
+    "payment_instructions",
+)
 
-    Returns the path to the generated PDF file.
+BILL_TO_FIELDS = (
+    "name",
+    "address_line1",
+    "address_line2",
+    "city",
+    "state",
+    "zip_code",
+    "phone",
+)
+
+
+def _resolve(snapshot: dict | None, live: object, fields: tuple[str, ...]) -> dict:
+    """Resolve one letterhead block, preferring the snapshot over the live record.
+
+    A snapshot missing an individual key falls back to the live value for that
+    key rather than rendering blank, so a snapshot written by an older version
+    of this code cannot punch holes in the document.
     """
-    # Get user profile for contractor info
+    snapshot = snapshot or {}
+    return {field: snapshot.get(field, getattr(live, field, None)) for field in fields}
+
+
+def build_render_context(session: Session, invoice: Invoice) -> dict:
+    """Build the letterhead half of the template context.
+
+    This is the one place the snapshot-vs-live rule lives. Finalized invoices
+    carry snapshots and render from them forever; drafts and pre-migration
+    invoices have none and fall back to the live profile and client.
+
+    Raises ValueError when there is nothing to render from at all -- no
+    snapshot and no configured profile.
+    """
     profile = get_user_profile(session)
-    if not profile:
+    if profile is None and not invoice.issuer_snapshot:
         raise ValueError("User profile not configured")
 
-    # Ensure output directory exists
-    output_dir = Path(os.environ.get("INVOICE_PDF_DIR", "/app/invoices"))
-    output_dir.mkdir(parents=True, exist_ok=True)
+    return {
+        "issuer": _resolve(invoice.issuer_snapshot, profile, ISSUER_FIELDS),
+        "bill_to": _resolve(invoice.bill_to_snapshot, invoice.client, BILL_TO_FIELDS),
+        # Invoice content, not presentation: captured at create, so it is read
+        # from the invoice and only falls back for rows that predate the column.
+        "service_description": (
+            invoice.service_description
+            if invoice.service_description is not None
+            else getattr(invoice.client, "service_description", None)
+        ),
+    }
 
-    # Prepare template context
+
+def render_invoice_html(session: Session, invoice: Invoice) -> str:
+    """Render the invoice to HTML.
+
+    Split out from generate_invoice_pdf so the template can be exercised
+    without WeasyPrint, which needs native GTK libraries that are absent on a
+    plain dev machine.
+    """
     context = {
         "invoice": invoice,
-        "profile": profile,
-        "client": invoice.client,
         "line_items": sorted(
             invoice.line_items, key=lambda x: (x.work_date, x.sort_order)
         ),
         "format_currency": format_currency,
         "format_hours": format_hours,
         "format_tax_rate": format_tax_rate,
+        **build_render_context(session, invoice),
     }
 
-    # Render HTML template
     env = get_template_env()
-    template = env.get_template("invoice.html")
-    html_content = template.render(**context)
+    return env.get_template("invoice.html").render(**context)
 
-    # Generate PDF
+
+def generate_invoice_pdf(session: Session, invoice: Invoice) -> str:
+    """Generate a PDF for an invoice.
+
+    Returns the path to the generated PDF file.
+    """
+    html_content = render_invoice_html(session, invoice)
+
+    # Ensure output directory exists
+    output_dir = Path(os.environ.get("INVOICE_PDF_DIR", "/app/invoices"))
+    output_dir.mkdir(parents=True, exist_ok=True)
+
     pdf_path = output_dir / f"invoice_{invoice.invoice_number}.pdf"
+    # Imported lazily: WeasyPrint pulls in native GTK libraries, and keeping
+    # this local is what lets the rest of the suite import on a machine (or CI
+    # runner) that lacks them.
     from weasyprint import HTML
 
     HTML(string=html_content).write_pdf(str(pdf_path))

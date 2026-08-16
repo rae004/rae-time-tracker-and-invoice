@@ -211,7 +211,7 @@ function ProfileForm({ profile }: { profile: UserProfile | undefined }) {
               name="payment_instructions"
               value={formData.payment_instructions}
               onChange={handleChange}
-              className="textarea textarea-bordered h-24"
+              className="textarea textarea-bordered h-24 w-3/4"
               placeholder="Direct deposit preferred if possible, or make all checks payable to..."
             />
           </div>

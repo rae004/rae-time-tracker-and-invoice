@@ -5,11 +5,28 @@ from datetime import date, datetime
 from decimal import Decimal
 from enum import StrEnum
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, Numeric, String, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import (
+    JSON,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    func,
+)
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.extensions import Base
+
+# JSONB on Postgres, plain JSON on SQLite. The test suite builds its schema with
+# Base.metadata.create_all against SQLite, which cannot compile JSONB at all, so
+# a bare JSONB column would fail at CREATE TABLE. (postgresql.UUID above needs no
+# such treatment: in SQLAlchemy 2 it subclasses the generic Uuid and degrades on
+# its own.)
+JSONSnapshot = JSON().with_variant(JSONB(), "postgresql")
 
 
 class InvoiceStatus(StrEnum):
@@ -48,10 +65,21 @@ class Invoice(Base):
     total: Mapped[Decimal] = mapped_column(
         Numeric(10, 2), nullable=False, default=Decimal("0.00")
     )
+    service_description: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # Snapshot from client, captured at create
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default=InvoiceStatus.DRAFT.value
     )
     pdf_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Letterhead snapshots, captured at finalize. Presentation only: they never
+    # affect money. Null on drafts and on pre-migration invoices, in which case
+    # the renderer falls back to the live profile/client.
+    issuer_snapshot: Mapped[dict | None] = mapped_column(JSONSnapshot, nullable=True)
+    bill_to_snapshot: Mapped[dict | None] = mapped_column(JSONSnapshot, nullable=True)
+    letterhead_refreshed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

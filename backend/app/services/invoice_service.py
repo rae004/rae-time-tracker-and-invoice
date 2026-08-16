@@ -1,6 +1,6 @@
 """Business logic for invoice operations."""
 
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from uuid import UUID
 
@@ -9,11 +9,33 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.models import Client, Invoice, InvoiceLineItem, Project, TimeEntry, UserProfile
 from app.models.invoice import InvoiceStatus
+from app.services.pdf_service import BILL_TO_FIELDS, ISSUER_FIELDS
 
 
 def get_user_profile(session: Session) -> UserProfile | None:
     """Get the user profile (single row)."""
     return session.query(UserProfile).first()
+
+
+def _snapshot(source: object, fields: tuple[str, ...]) -> dict:
+    """Copy `fields` off a live record into a plain dict."""
+    return {field: getattr(source, field, None) for field in fields}
+
+
+def capture_letterhead(session: Session, invoice: Invoice) -> None:
+    """Freeze the issuer and bill-to details onto the invoice.
+
+    Called at finalize. Uses the same field tuples the renderer resolves
+    against, so what gets captured and what gets rendered cannot drift apart.
+
+    Presentation only: this never touches hourly_rate, line items or totals.
+    """
+    profile = get_user_profile(session)
+    if not profile:
+        raise ValueError("User profile not configured")
+
+    invoice.issuer_snapshot = _snapshot(profile, ISSUER_FIELDS)
+    invoice.bill_to_snapshot = _snapshot(invoice.client, BILL_TO_FIELDS)
 
 
 def get_time_entries_for_invoice(
@@ -175,6 +197,11 @@ def create_invoice(
     # Calculate totals
     subtotal, total = calculate_invoice_totals(line_items_data, tax_rate, other_charges)
 
+    # Invoice content, so it is frozen here rather than at finalize -- the same
+    # rule hourly_rate already follows. Editing the client's description later
+    # must not rewrite what an existing invoice was raised for.
+    client = session.query(Client).filter(Client.id == client_id).first()
+
     # Create invoice
     invoice = Invoice(
         invoice_number=invoice_number,
@@ -182,6 +209,7 @@ def create_invoice(
         period_start=period_start,
         period_end=period_end,
         hourly_rate=hourly_rate,
+        service_description=getattr(client, "service_description", None),
         subtotal=subtotal,
         tax_rate=tax_rate,
         other_charges=other_charges,
@@ -249,7 +277,29 @@ def finalize_invoice(session: Session, invoice: Invoice) -> Invoice:
     if invoice.is_finalized:
         raise ValueError("Invoice is already finalized")
 
+    # Finalizing is the moment the document stops tracking the live records.
+    capture_letterhead(session, invoice)
     invoice.status = InvoiceStatus.FINALIZED.value
+    session.flush()
+    return invoice
+
+
+def refresh_letterhead(session: Session, invoice: Invoice) -> Invoice:
+    """Re-capture the letterhead on an issued invoice from the current records.
+
+    Deliberately distinct from regenerating the PDF. Regenerating rebuilds a
+    derived file and always produces the same document; this changes what the
+    document says, which is why it stamps letterhead_refreshed_at and why the
+    UI asks before calling it.
+
+    Presentation only -- hourly_rate, line items and totals are untouched, so
+    an issued invoice can never change what it charges.
+    """
+    if not invoice.is_finalized:
+        raise ValueError("Only a finalized invoice has a letterhead to refresh")
+
+    capture_letterhead(session, invoice)
+    invoice.letterhead_refreshed_at = datetime.now(UTC)
     session.flush()
     return invoice
 
