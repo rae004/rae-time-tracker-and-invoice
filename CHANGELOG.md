@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.2.3...v0.3.0) (2026-08-16)
+
+
+### Features
+
+* **invoice:** complete the finalized-invoice snapshot ([#100](https://github.com/rae004/rae-time-tracker-and-invoice/issues/100)) ([ad31872](https://github.com/rae004/rae-time-tracker-and-invoice/commit/ad318722728cd4013613a3fb46df4e6c64cc33eb))
+
 ## [0.2.3](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.2.2...v0.2.3) (2026-08-15)
 
 
