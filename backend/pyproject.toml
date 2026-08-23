@@ -34,6 +34,11 @@ dev = [
     "pypdf>=6.16.1",
 ]
 
+[tool.pytest.ini_options]
+markers = [
+    "postgres: needs a real Postgres test database; skipped when none is reachable",
+]
+
 [tool.mypy]
 python_version = "3.13"
 strict = true

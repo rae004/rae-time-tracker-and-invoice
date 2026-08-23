@@ -72,11 +72,24 @@ jobs:
         working-directory: ./backend
         run: uv run ruff format --check .
 
+      # Most of the suite runs on in-memory SQLite and ignores this. The
+      # postgres-marked tests use TEST_DATABASE_URL to exercise migrations and
+      # the real dialect -- until now the service container below was started
+      # for every run and never connected to.
       - name: Run tests with coverage
         working-directory: ./backend
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rae_time_tracker_test
+          TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/rae_time_tracker_test
         run: uv run pytest -v --cov=app --cov-report=term-missing --cov-report=xml
+
+      # The postgres tests skip themselves when no database is reachable, so a
+      # broken service container would quietly cost coverage rather than fail.
+      - name: Verify the Postgres-backed tests actually ran
+        working-directory: ./backend
+        env:
+          TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/rae_time_tracker_test
+        run: uv run pytest -m postgres -q --no-header | tail -1 | grep -q "passed"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7.0.0
