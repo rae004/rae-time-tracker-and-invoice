@@ -79,7 +79,9 @@ jobs:
       - name: Run tests with coverage
         working-directory: ./backend
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rae_time_tracker_test
+          # +psycopg: this project uses psycopg v3. A bare postgresql:// URL
+          # makes SQLAlchemy reach for psycopg2, which is not a dependency.
+          DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/rae_time_tracker_test
           TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/rae_time_tracker_test
         run: uv run pytest -v --cov=app --cov-report=term-missing --cov-report=xml
 
