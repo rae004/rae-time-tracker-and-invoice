@@ -1,10 +1,13 @@
 """Test fixtures for Rae Time Tracker backend."""
 
+import os
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine.url import make_url
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import sessionmaker
 
 from app import create_app
@@ -120,3 +123,107 @@ def completed_entry(session, sample_project):
     session.add(entry)
     session.commit()
     return entry
+
+
+# --- Postgres-backed fixtures -------------------------------------------------
+#
+# The suite above runs on in-memory SQLite: fast, and it needs no database at
+# all. The cost is that it never exercises the engine we actually deploy on,
+# which is how a bare JSONB column -- valid on Postgres, uncompilable on SQLite
+# -- could have reached production unnoticed.
+#
+# These fixtures cover that gap for the few tests that need it. They skip when
+# no test database is reachable, so the default `pytest` run is unchanged.
+
+POSTGRES_TEST_URL = os.environ.get(
+    "TEST_DATABASE_URL",
+    "postgresql+psycopg://postgres:postgres@localhost:5433/rae_time_tracker_test",
+)
+
+
+def _require_test_database(url: str) -> None:
+    """Refuse to touch anything that is not an obvious throwaway database.
+
+    These tests run `alembic downgrade`, which drops columns. Pointing that at
+    a development database would destroy real invoices, so the name has to say
+    plainly that it is disposable.
+    """
+    name = make_url(url).database or ""
+    if not name.endswith("_test"):
+        pytest.fail(
+            f"Refusing to run destructive schema tests against database {name!r}: "
+            "TEST_DATABASE_URL must name a database ending in '_test'."
+        )
+
+
+@pytest.fixture(scope="session")
+def postgres_url():
+    """The test database URL, or skip if it is not reachable."""
+    _require_test_database(POSTGRES_TEST_URL)
+
+    engine = create_engine(POSTGRES_TEST_URL, connect_args={"connect_timeout": 3})
+    try:
+        with engine.connect():
+            pass
+    except OperationalError as exc:
+        pytest.skip(f"No Postgres test database at {POSTGRES_TEST_URL}: {exc}")
+    finally:
+        engine.dispose()
+
+    return POSTGRES_TEST_URL
+
+
+@pytest.fixture
+def postgres_engine(postgres_url):
+    """An engine on an empty test database, torn down after the test."""
+    engine = create_engine(postgres_url)
+    _drop_everything(engine)
+    try:
+        yield engine
+    finally:
+        _drop_everything(engine)
+        engine.dispose()
+
+
+@pytest.fixture
+def postgres_session(postgres_engine):
+    """A session against the real dialect, schema built from the models."""
+    Base.metadata.create_all(postgres_engine)
+    maker = sessionmaker(bind=postgres_engine, expire_on_commit=False)
+    session = maker()
+
+    original = db.get_session
+    db.get_session = lambda: session
+    try:
+        yield session
+    finally:
+        db.get_session = original
+        session.close()
+
+
+def _drop_everything(engine) -> None:
+    """Reset the test database, including Alembic's own bookkeeping table."""
+    with engine.begin() as conn:
+        conn.execute(text("DROP SCHEMA public CASCADE"))
+        conn.execute(text("CREATE SCHEMA public"))
+
+
+@pytest.fixture
+def postgres_client(postgres_session):
+    """A client living in the Postgres test database.
+
+    sample_client belongs to the SQLite session, so a Postgres test using it
+    would fail the invoices.client_id foreign key.
+    """
+    client = Client(
+        name="Test Company",
+        address_line1="123 Test St",
+        city="Test City",
+        state="TS",
+        zip_code="12345",
+        hourly_rate=Decimal("150.00"),
+        service_description="Software development services",
+    )
+    postgres_session.add(client)
+    postgres_session.commit()
+    return client
