@@ -200,9 +200,12 @@ export interface Invoice {
   tax_rate: string;
   other_charges: string;
   total: string;
+  service_description: string | null;
   status: "draft" | "finalized";
   pdf_path: string | null;
   created_at: string;
+  /** Set when the letterhead was re-captured after the invoice was issued. */
+  letterhead_refreshed_at: string | null;
   line_items: InvoiceLineItem[];
 }
 

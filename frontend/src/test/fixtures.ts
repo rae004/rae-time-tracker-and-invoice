@@ -120,9 +120,11 @@ export function createInvoice(overrides?: Partial<Invoice>): Invoice {
     tax_rate: "0.0000",
     other_charges: "0.00",
     total: "225.00",
+    service_description: "Software development services",
     status: "draft",
     pdf_path: null,
     created_at: "2026-04-15T12:00:00Z",
+    letterhead_refreshed_at: null,
     line_items: [createInvoiceLineItem()],
     ...overrides,
   };
