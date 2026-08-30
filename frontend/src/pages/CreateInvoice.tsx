@@ -188,12 +188,12 @@ export function CreateInvoice() {
             <div className="card-body">
               <h2 className="card-title text-lg">Invoice Details</h2>
 
-              <div className="form-control">
+              <div className="flex flex-col gap-1">
                 <label className="label">
                   <span className="label-text">Client *</span>
                 </label>
                 <select
-                  className="select select-bordered"
+                  className="select select-bordered w-full"
                   value={clientId}
                   onChange={handleClientChange}
                 >
@@ -207,24 +207,24 @@ export function CreateInvoice() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="form-control">
+                <div className="flex flex-col gap-1">
                   <label className="label">
                     <span className="label-text">Period Start *</span>
                   </label>
                   <input
                     type="date"
-                    className="input input-bordered"
+                    className="input input-bordered w-full"
                     value={periodStart}
                     onChange={handlePeriodStartChange}
                   />
                 </div>
-                <div className="form-control">
+                <div className="flex flex-col gap-1">
                   <label className="label">
                     <span className="label-text">Period End *</span>
                   </label>
                   <input
                     type="date"
-                    className="input input-bordered"
+                    className="input input-bordered w-full"
                     value={periodEnd}
                     onChange={handlePeriodEndChange}
                   />
@@ -234,26 +234,26 @@ export function CreateInvoice() {
               <div className="divider"></div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="form-control">
+                <div className="flex flex-col gap-1">
                   <label className="label">
                     <span className="label-text">Tax Rate (%)</span>
                   </label>
                   <input
                     type="number"
-                    className="input input-bordered"
+                    className="input input-bordered w-full"
                     value={taxRate}
                     onChange={(e) => setTaxRate(e.target.value)}
                     min="0"
                     step="0.01"
                   />
                 </div>
-                <div className="form-control">
+                <div className="flex flex-col gap-1">
                   <label className="label">
                     <span className="label-text">Other Charges ($)</span>
                   </label>
                   <input
                     type="number"
-                    className="input input-bordered"
+                    className="input input-bordered w-full"
                     value={otherCharges}
                     onChange={(e) => setOtherCharges(e.target.value)}
                     min="0"

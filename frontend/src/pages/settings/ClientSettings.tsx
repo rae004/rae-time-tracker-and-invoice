@@ -148,7 +148,7 @@ export function ClientSettings() {
               <h4 className="font-medium">Client Information</h4>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="form-control md:col-span-2">
+                <div className="flex flex-col gap-1 md:col-span-2">
                   <label className="label">
                     <span className="label-text">Client/Company Name *</span>
                   </label>
@@ -157,12 +157,12 @@ export function ClientSettings() {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="input input-bordered"
+                    className="input input-bordered w-full"
                     required
                   />
                 </div>
 
-                <div className="form-control">
+                <div className="flex flex-col gap-1">
                   <label className="label">
                     <span className="label-text">Phone</span>
                   </label>
@@ -171,11 +171,11 @@ export function ClientSettings() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="input input-bordered"
+                    className="input input-bordered w-full"
                   />
                 </div>
 
-                <div className="form-control">
+                <div className="flex flex-col gap-1">
                   <label className="label">
                     <span className="label-text">Hourly Rate ($) *</span>
                   </label>
@@ -184,7 +184,7 @@ export function ClientSettings() {
                     name="hourly_rate"
                     value={formData.hourly_rate}
                     onChange={handleChange}
-                    className="input input-bordered"
+                    className="input input-bordered w-full"
                     step="0.01"
                     min="0"
                     required
@@ -199,7 +199,7 @@ export function ClientSettings() {
               <h4 className="font-medium">Billing Address</h4>
 
               <div className="space-y-4">
-                <div className="form-control">
+                <div className="flex flex-col gap-1">
                   <label className="label">
                     <span className="label-text">Address Line 1 *</span>
                   </label>
@@ -208,12 +208,12 @@ export function ClientSettings() {
                     name="address_line1"
                     value={formData.address_line1}
                     onChange={handleChange}
-                    className="input input-bordered"
+                    className="input input-bordered w-full"
                     required
                   />
                 </div>
 
-                <div className="form-control">
+                <div className="flex flex-col gap-1">
                   <label className="label">
                     <span className="label-text">Address Line 2</span>
                   </label>
@@ -222,12 +222,12 @@ export function ClientSettings() {
                     name="address_line2"
                     value={formData.address_line2}
                     onChange={handleChange}
-                    className="input input-bordered"
+                    className="input input-bordered w-full"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="form-control col-span-2">
+                  <div className="flex flex-col gap-1 col-span-2">
                     <label className="label">
                       <span className="label-text">City *</span>
                     </label>
@@ -236,12 +236,12 @@ export function ClientSettings() {
                       name="city"
                       value={formData.city}
                       onChange={handleChange}
-                      className="input input-bordered"
+                      className="input input-bordered w-full"
                       required
                     />
                   </div>
 
-                  <div className="form-control">
+                  <div className="flex flex-col gap-1">
                     <label className="label">
                       <span className="label-text">State *</span>
                     </label>
@@ -250,13 +250,13 @@ export function ClientSettings() {
                       name="state"
                       value={formData.state}
                       onChange={handleChange}
-                      className="input input-bordered"
+                      className="input input-bordered w-full"
                       maxLength={2}
                       required
                     />
                   </div>
 
-                  <div className="form-control">
+                  <div className="flex flex-col gap-1">
                     <label className="label">
                       <span className="label-text">ZIP *</span>
                     </label>
@@ -265,7 +265,7 @@ export function ClientSettings() {
                       name="zip_code"
                       value={formData.zip_code}
                       onChange={handleChange}
-                      className="input input-bordered"
+                      className="input input-bordered w-full"
                       required
                     />
                   </div>
@@ -278,7 +278,7 @@ export function ClientSettings() {
             <div className="card-body">
               <h4 className="font-medium">Invoice Settings</h4>
 
-              <div className="form-control">
+              <div className="flex flex-col gap-1">
                 <label className="label">
                   <span className="label-text">Service Description</span>
                 </label>
@@ -286,7 +286,7 @@ export function ClientSettings() {
                   name="service_description"
                   value={formData.service_description}
                   onChange={handleChange}
-                  className="textarea textarea-bordered"
+                  className="textarea textarea-bordered w-full"
                   placeholder="Software development services"
                 />
                 <label className="label">

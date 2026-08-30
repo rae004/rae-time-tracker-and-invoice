@@ -135,7 +135,7 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
 
             {/* Start / End time */}
             <div className="grid grid-cols-2 gap-2">
-              <div className="form-control">
+              <div className="flex flex-col gap-1">
                 <span className="label-text text-xs">Start Time</span>
                 <input
                   type="datetime-local"
@@ -156,7 +156,7 @@ export function TimeEntryCard({ entry, showDate = false }: TimeEntryCardProps) {
                   <span className="text-xs text-base-content/50">ms</span>
                 </div>
               </div>
-              <div className="form-control">
+              <div className="flex flex-col gap-1">
                 <span className="label-text text-xs">End Time</span>
                 <input
                   type="datetime-local"
