@@ -71,7 +71,7 @@ function ProfileForm({ profile }: { profile: UserProfile | undefined }) {
           <h3 className="card-title text-lg">Personal Information</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="form-control">
+            <div className="flex flex-col gap-1">
               <label className="label">
                 <span className="label-text">Full Name</span>
               </label>
@@ -80,12 +80,12 @@ function ProfileForm({ profile }: { profile: UserProfile | undefined }) {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="input input-bordered"
+                className="input input-bordered w-full"
                 placeholder="John Doe"
               />
             </div>
 
-            <div className="form-control">
+            <div className="flex flex-col gap-1">
               <label className="label">
                 <span className="label-text">Email</span>
               </label>
@@ -94,12 +94,12 @@ function ProfileForm({ profile }: { profile: UserProfile | undefined }) {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="input input-bordered"
+                className="input input-bordered w-full"
                 placeholder="john@example.com"
               />
             </div>
 
-            <div className="form-control">
+            <div className="flex flex-col gap-1">
               <label className="label">
                 <span className="label-text">Phone</span>
               </label>
@@ -108,7 +108,7 @@ function ProfileForm({ profile }: { profile: UserProfile | undefined }) {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="input input-bordered"
+                className="input input-bordered w-full"
                 placeholder="(555) 123-4567"
               />
             </div>
@@ -122,7 +122,7 @@ function ProfileForm({ profile }: { profile: UserProfile | undefined }) {
           <h3 className="card-title text-lg">Address</h3>
 
           <div className="space-y-4">
-            <div className="form-control">
+            <div className="flex flex-col gap-1">
               <label className="label">
                 <span className="label-text">Address Line 1</span>
               </label>
@@ -131,12 +131,12 @@ function ProfileForm({ profile }: { profile: UserProfile | undefined }) {
                 name="address_line1"
                 value={formData.address_line1}
                 onChange={handleChange}
-                className="input input-bordered"
+                className="input input-bordered w-full"
                 placeholder="123 Main Street"
               />
             </div>
 
-            <div className="form-control">
+            <div className="flex flex-col gap-1">
               <label className="label">
                 <span className="label-text">Address Line 2 (Optional)</span>
               </label>
@@ -145,13 +145,13 @@ function ProfileForm({ profile }: { profile: UserProfile | undefined }) {
                 name="address_line2"
                 value={formData.address_line2}
                 onChange={handleChange}
-                className="input input-bordered"
+                className="input input-bordered w-full"
                 placeholder="Suite 100"
               />
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="form-control col-span-2">
+              <div className="flex flex-col gap-1 col-span-2">
                 <label className="label">
                   <span className="label-text">City</span>
                 </label>
@@ -160,12 +160,12 @@ function ProfileForm({ profile }: { profile: UserProfile | undefined }) {
                   name="city"
                   value={formData.city}
                   onChange={handleChange}
-                  className="input input-bordered"
+                  className="input input-bordered w-full"
                   placeholder="San Francisco"
                 />
               </div>
 
-              <div className="form-control">
+              <div className="flex flex-col gap-1">
                 <label className="label">
                   <span className="label-text">State</span>
                 </label>
@@ -174,13 +174,13 @@ function ProfileForm({ profile }: { profile: UserProfile | undefined }) {
                   name="state"
                   value={formData.state}
                   onChange={handleChange}
-                  className="input input-bordered"
+                  className="input input-bordered w-full"
                   placeholder="CA"
                   maxLength={2}
                 />
               </div>
 
-              <div className="form-control">
+              <div className="flex flex-col gap-1">
                 <label className="label">
                   <span className="label-text">ZIP Code</span>
                 </label>
@@ -189,7 +189,7 @@ function ProfileForm({ profile }: { profile: UserProfile | undefined }) {
                   name="zip_code"
                   value={formData.zip_code}
                   onChange={handleChange}
-                  className="input input-bordered"
+                  className="input input-bordered w-full"
                   placeholder="94102"
                 />
               </div>
@@ -206,12 +206,12 @@ function ProfileForm({ profile }: { profile: UserProfile | undefined }) {
             These instructions will appear at the bottom of your invoices.
           </p>
 
-          <div className="form-control">
+          <div className="flex flex-col gap-1">
             <textarea
               name="payment_instructions"
               value={formData.payment_instructions}
               onChange={handleChange}
-              className="textarea textarea-bordered h-24 w-3/4"
+              className="textarea textarea-bordered h-24 w-full"
               placeholder="Direct deposit preferred if possible, or make all checks payable to..."
             />
           </div>

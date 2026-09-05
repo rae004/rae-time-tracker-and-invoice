@@ -129,7 +129,7 @@ export function TimerControls() {
             <h2 className="card-title">Start Timer</h2>
 
             {/* Project selector */}
-            <div className="form-control">
+            <div className="flex flex-col gap-1">
               <label className="label">
                 <span className="label-text">Project</span>
               </label>
@@ -148,7 +148,7 @@ export function TimerControls() {
             </div>
 
             {/* Task name input */}
-            <div className="form-control">
+            <div className="flex flex-col gap-1">
               <label className="label">
                 <span className="label-text">What are you working on?</span>
               </label>
@@ -166,7 +166,7 @@ export function TimerControls() {
 
             {/* Tags selector */}
             {tags.length > 0 && (
-              <div className="form-control">
+              <div className="flex flex-col gap-1">
                 <label className="label">
                   <span className="label-text">Tags (optional)</span>
                 </label>

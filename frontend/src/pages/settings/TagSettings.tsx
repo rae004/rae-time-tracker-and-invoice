@@ -130,7 +130,7 @@ export function TagSettings() {
             </h4>
 
             <div className="space-y-4">
-              <div className="form-control">
+              <div className="flex flex-col gap-1">
                 <label className="label">
                   <span className="label-text">Tag Name</span>
                 </label>
@@ -138,13 +138,13 @@ export function TagSettings() {
                   type="text"
                   value={tagName}
                   onChange={(e) => setTagName(e.target.value)}
-                  className="input input-bordered"
+                  className="input input-bordered w-full"
                   placeholder="e.g., Development, Design, Meeting"
                   autoFocus
                 />
               </div>
 
-              <div className="form-control">
+              <div className="flex flex-col gap-1">
                 <label className="label">
                   <span className="label-text">Color</span>
                 </label>
@@ -193,7 +193,7 @@ export function TagSettings() {
               </div>
 
               {/* Preview */}
-              <div className="form-control">
+              <div className="flex flex-col gap-1">
                 <label className="label">
                   <span className="label-text">Preview</span>
                 </label>
