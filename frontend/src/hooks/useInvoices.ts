@@ -96,6 +96,44 @@ export function useFinalizeInvoice() {
   });
 }
 
+/**
+ * Rebuild the PDF file from what the invoice already holds.
+ *
+ * A cache rebuild: idempotent, and it produces the same document every time.
+ * Deliberately separate from useRefreshLetterhead, which changes what the
+ * document says.
+ */
+export function useRegenerateInvoicePdf() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => api.post<Invoice>(`/invoices/${id}/pdf/regenerate`),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(id) });
+    },
+  });
+}
+
+/**
+ * Re-capture the letterhead from the current profile and client.
+ *
+ * This alters an already-issued document, so the caller confirms first. It
+ * never touches the rate, line items or totals.
+ */
+export function useRefreshLetterhead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.post<Invoice>(`/invoices/${id}/refresh-letterhead`),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(id) });
+    },
+  });
+}
+
 export function getInvoicePdfUrl(invoiceId: string): string {
   return `/api/invoices/${invoiceId}/pdf`;
 }
