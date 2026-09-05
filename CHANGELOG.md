@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.3.0...v0.4.0) (2026-09-05)
+
+
+### Features
+
+* **invoice:** surface regenerate and refresh actions on invoice detail ([#106](https://github.com/rae004/rae-time-tracker-and-invoice/issues/106)) ([7850268](https://github.com/rae004/rae-time-tracker-and-invoice/commit/7850268389c16351adfb7d858a67c8757f53e7d4))
+
+
+### Bug Fixes
+
+* **ui:** restore stacked form layout after the daisyUI 5 upgrade ([#116](https://github.com/rae004/rae-time-tracker-and-invoice/issues/116)) ([a9d2a64](https://github.com/rae004/rae-time-tracker-and-invoice/commit/a9d2a64ebceac5e770d49f1611cde71037191956))
+
 ## [0.3.0](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.2.3...v0.3.0) (2026-08-16)
 
 
