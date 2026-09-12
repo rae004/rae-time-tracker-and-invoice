@@ -38,11 +38,5 @@ class UserProfile(Base):
         nullable=False,
     )
 
-    def get_and_increment_invoice_number(self) -> int:
-        """Get the current invoice number and increment for next use."""
-        current = self.next_invoice_number
-        self.next_invoice_number += 1
-        return current
-
     def __repr__(self) -> str:
         return f"<UserProfile {self.name}>"
