@@ -201,7 +201,24 @@ class TestImport:
         client.post("/api/data/import", json=original)
 
         roundtripped = client.get("/api/data/export").get_json()
-        assert roundtripped["data"]["user_profile"] == original["data"]["user_profile"]
+
+        # Everything roundtrips unchanged except the invoice-number cursor,
+        # which import deliberately repairs: the seed is itself an instance of
+        # the broken state this guards against -- invoice 1001 issued while the
+        # counter still says 1. Preserving that faithfully would just carry a
+        # duplicate-key violation across the roundtrip.
+        assert roundtripped["data"]["user_profile"]["next_invoice_number"] == 1002, (
+            "import should advance the cursor past the highest imported number"
+        )
+        assert {
+            k: v
+            for k, v in roundtripped["data"]["user_profile"].items()
+            if k != "next_invoice_number"
+        } == {
+            k: v
+            for k, v in original["data"]["user_profile"].items()
+            if k != "next_invoice_number"
+        }
         assert (
             roundtripped["data"]["category_tags"] == original["data"]["category_tags"]
         )

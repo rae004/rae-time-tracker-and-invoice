@@ -4,7 +4,7 @@ from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from sqlalchemy.orm import Session, joinedload
 
 from app.models import Client, Invoice, InvoiceLineItem, Project, TimeEntry, UserProfile
@@ -15,6 +15,32 @@ from app.services.pdf_service import BILL_TO_FIELDS, ISSUER_FIELDS
 def get_user_profile(session: Session) -> UserProfile | None:
     """Get the user profile (single row)."""
     return session.query(UserProfile).first()
+
+
+def resolve_next_invoice_number(session: Session, profile: UserProfile) -> int:
+    """The number the next invoice will take.
+
+    The profile counter is the allocation cursor, but it is not the only way a
+    row lands in `invoices`: import_data inserts them with their exported
+    numbers. Nothing forced the counter past those, so a counter left behind an
+    imported block walks straight into a duplicate-key violation when it catches
+    up -- which is exactly what happened to an import of invoices 4 and 6-11
+    that left the counter at 1.
+
+    Resolving against the highest number actually issued makes allocation
+    self-healing rather than trusting every insertion path to remember.
+    """
+    highest = session.query(func.max(Invoice.invoice_number)).scalar()
+    if highest is None:
+        return profile.next_invoice_number
+    return max(profile.next_invoice_number, highest + 1)
+
+
+def allocate_invoice_number(session: Session, profile: UserProfile) -> int:
+    """Take the next invoice number and advance the cursor past it."""
+    number = resolve_next_invoice_number(session, profile)
+    profile.next_invoice_number = number + 1
+    return number
 
 
 def _snapshot(source: object, fields: tuple[str, ...]) -> dict:
@@ -192,7 +218,7 @@ def create_invoice(
     if not profile:
         raise ValueError("User profile not configured")
 
-    invoice_number = profile.get_and_increment_invoice_number()
+    invoice_number = allocate_invoice_number(session, profile)
 
     # Calculate totals
     subtotal, total = calculate_invoice_totals(line_items_data, tax_rate, other_charges)

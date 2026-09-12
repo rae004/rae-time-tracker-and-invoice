@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from app.extensions import db
 from app.models import UserProfile
 from app.schemas import UserProfileCreate, UserProfileResponse, UserProfileUpdate
+from app.services import invoice_service
 
 logger = logging.getLogger(__name__)
 user_profile_bp = Blueprint("user_profile", __name__)
@@ -34,13 +35,28 @@ def get_or_create_profile(session):
     return profile
 
 
+def _profile_response(session, profile) -> UserProfileResponse:
+    """Serialize the profile, reporting the number the next invoice will take.
+
+    The stored counter is the allocation cursor and can sit behind numbers that
+    reached the table another way (an import, say). Reporting the same resolved
+    value that allocation uses keeps the UI honest without a second source of
+    truth -- see invoice_service.resolve_next_invoice_number.
+    """
+    response = UserProfileResponse.model_validate(profile)
+    response.next_invoice_number = invoice_service.resolve_next_invoice_number(
+        session, profile
+    )
+    return response
+
+
 @user_profile_bp.route("/user-profile", methods=["GET"])
 def get_user_profile():
     """Get the user profile (creates a placeholder if none exists)."""
     session = db.get_session()
     try:
         profile = get_or_create_profile(session)
-        response = UserProfileResponse.model_validate(profile)
+        response = _profile_response(session, profile)
         return jsonify(response.model_dump(mode="json"))
     finally:
         session.close()
@@ -65,7 +81,7 @@ def update_user_profile():
 
         session.commit()
         session.refresh(profile)
-        response = UserProfileResponse.model_validate(profile)
+        response = _profile_response(session, profile)
         return jsonify(response.model_dump(mode="json"))
     except Exception:
         session.rollback()
@@ -105,7 +121,7 @@ def create_user_profile():
         session.add(profile)
         session.commit()
         session.refresh(profile)
-        response = UserProfileResponse.model_validate(profile)
+        response = _profile_response(session, profile)
         return jsonify(response.model_dump(mode="json")), 201
     except Exception:
         session.rollback()

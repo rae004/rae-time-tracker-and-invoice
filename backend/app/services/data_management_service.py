@@ -266,6 +266,18 @@ def apply_import(session: Session, payload: DataImport) -> ImportCounts:
         existing_invoice_numbers.add(invoice.invoice_number)
         counts.invoices_created += 1
 
+    # Imported invoices carry their own numbers, so the profile's allocation
+    # cursor can end up pointing at one that is already taken -- which is how an
+    # import of invoices 4 and 6-11 against a counter of 1 produced a duplicate
+    # key violation six weeks later, when the counter finally caught up.
+    # Allocation resolves around this on its own, but leaving the stored value
+    # wrong means anything reading the column directly is misled.
+    profile = session.query(UserProfile).first()
+    if profile and existing_invoice_numbers:
+        highest = max(existing_invoice_numbers)
+        if profile.next_invoice_number <= highest:
+            profile.next_invoice_number = highest + 1
+
     session.commit()
     return counts
 
