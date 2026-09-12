@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.4.0...v0.4.1) (2026-09-12)
+
+
+### Bug Fixes
+
+* **invoice:** stop allocating invoice numbers that are already taken ([#131](https://github.com/rae004/rae-time-tracker-and-invoice/issues/131)) ([da7d6a8](https://github.com/rae004/rae-time-tracker-and-invoice/commit/da7d6a864b0eb54aa65c0f7cf9497909166f3862))
+
 ## [0.4.0](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.3.0...v0.4.0) (2026-09-05)
 
 
