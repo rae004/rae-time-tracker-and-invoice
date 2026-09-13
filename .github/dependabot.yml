@@ -70,6 +70,17 @@ updates:
     open-pull-requests-limit: 5
     cooldown:
       default-days: 7
+    groups:
+      # codeql-action/init and codeql-action/analyze are separate dependencies
+      # to Dependabot but a single unit at runtime: they negotiate through a
+      # shared config file, so a version skew fails the run with
+      #   Loaded a configuration file for version 'X', but running version 'Y'
+      # Ungrouped, every release arrives as two PRs that each fail on their own
+      # and have to be combined by hand -- done three times already, in #99,
+      # #124 and #133.
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
     labels:
       - dependencies
       - ci
