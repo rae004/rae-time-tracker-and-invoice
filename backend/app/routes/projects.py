@@ -4,6 +4,7 @@ import logging
 from uuid import UUID
 
 from flask import Blueprint, jsonify, request
+from flask.typing import ResponseReturnValue
 from pydantic import ValidationError
 
 from app.extensions import db
@@ -21,7 +22,7 @@ projects_bp = Blueprint("projects", __name__)
 
 
 @projects_bp.route("/projects", methods=["GET"])
-def list_projects():
+def list_projects() -> ResponseReturnValue:
     """List all projects, optionally filtered by client_id or active status."""
     session = db.get_session()
     try:
@@ -53,7 +54,7 @@ def list_projects():
 
 
 @projects_bp.route("/projects", methods=["POST"])
-def create_project():
+def create_project() -> ResponseReturnValue:
     """Create a new project."""
     try:
         data = ProjectCreate.model_validate(request.get_json())
@@ -87,7 +88,7 @@ def create_project():
 
 
 @projects_bp.route("/projects/<uuid:project_id>", methods=["GET"])
-def get_project(project_id: UUID):
+def get_project(project_id: UUID) -> ResponseReturnValue:
     """Get a specific project by ID."""
     session = db.get_session()
     try:
@@ -106,7 +107,7 @@ def get_project(project_id: UUID):
 
 
 @projects_bp.route("/projects/<uuid:project_id>", methods=["PUT"])
-def update_project(project_id: UUID):
+def update_project(project_id: UUID) -> ResponseReturnValue:
     """Update a project."""
     try:
         data = ProjectUpdate.model_validate(request.get_json())
@@ -143,7 +144,7 @@ def update_project(project_id: UUID):
 
 
 @projects_bp.route("/projects/<uuid:project_id>", methods=["DELETE"])
-def delete_project(project_id: UUID):
+def delete_project(project_id: UUID) -> ResponseReturnValue:
     """Delete a project."""
     session = db.get_session()
     try:
