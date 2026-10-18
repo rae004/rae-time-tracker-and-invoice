@@ -5,6 +5,7 @@ from pathlib import Path
 from uuid import UUID
 
 from flask import Blueprint, Response, jsonify, request, send_file
+from flask.typing import ResponseReturnValue
 from pydantic import ValidationError
 
 from app.extensions import db
@@ -26,7 +27,7 @@ invoices_bp = Blueprint("invoices", __name__)
 
 
 @invoices_bp.route("/invoices", methods=["GET"])
-def list_invoices() -> tuple[Response, int]:
+def list_invoices() -> ResponseReturnValue:
     """List all invoices with optional filtering."""
     client_id = request.args.get("client_id")
     status = request.args.get("status")
@@ -56,7 +57,7 @@ def list_invoices() -> tuple[Response, int]:
 
 
 @invoices_bp.route("/invoices/<uuid:invoice_id>", methods=["GET"])
-def get_invoice(invoice_id: UUID) -> tuple[Response, int]:
+def get_invoice(invoice_id: UUID) -> ResponseReturnValue:
     """Get a single invoice with all details."""
     session = db.get_session()
     try:
@@ -71,7 +72,7 @@ def get_invoice(invoice_id: UUID) -> tuple[Response, int]:
 
 
 @invoices_bp.route("/invoices/preview", methods=["POST"])
-def preview_invoice() -> tuple[Response, int]:
+def preview_invoice() -> ResponseReturnValue:
     """Preview an invoice before creating it."""
     try:
         data = InvoicePreviewRequest.model_validate(request.json)
@@ -97,7 +98,7 @@ def preview_invoice() -> tuple[Response, int]:
 
 
 @invoices_bp.route("/invoices", methods=["POST"])
-def create_invoice() -> tuple[Response, int]:
+def create_invoice() -> ResponseReturnValue:
     """Create a new invoice."""
     try:
         data = InvoiceCreate.model_validate(request.json)
@@ -149,7 +150,7 @@ def create_invoice() -> tuple[Response, int]:
 
 
 @invoices_bp.route("/invoices/<uuid:invoice_id>", methods=["PUT"])
-def update_invoice(invoice_id: UUID) -> tuple[Response, int]:
+def update_invoice(invoice_id: UUID) -> ResponseReturnValue:
     """Update a draft invoice."""
     try:
         data = InvoiceUpdate.model_validate(request.json)
@@ -194,7 +195,7 @@ def update_invoice(invoice_id: UUID) -> tuple[Response, int]:
 
 
 @invoices_bp.route("/invoices/<uuid:invoice_id>", methods=["DELETE"])
-def delete_invoice(invoice_id: UUID) -> tuple[Response, int]:
+def delete_invoice(invoice_id: UUID) -> ResponseReturnValue:
     """Delete a draft invoice."""
     session = db.get_session()
     try:
@@ -216,7 +217,7 @@ def delete_invoice(invoice_id: UUID) -> tuple[Response, int]:
 
 
 @invoices_bp.route("/invoices/<uuid:invoice_id>/finalize", methods=["POST"])
-def finalize_invoice(invoice_id: UUID) -> tuple[Response, int]:
+def finalize_invoice(invoice_id: UUID) -> ResponseReturnValue:
     """Finalize an invoice and generate PDF."""
     session = db.get_session()
     try:
@@ -278,7 +279,7 @@ def download_invoice_pdf(invoice_id: UUID) -> Response | tuple[Response, int]:
 
 
 @invoices_bp.route("/invoices/<uuid:invoice_id>/pdf/regenerate", methods=["POST"])
-def regenerate_invoice_pdf(invoice_id: UUID) -> tuple[Response, int]:
+def regenerate_invoice_pdf(invoice_id: UUID) -> ResponseReturnValue:
     """Rebuild the PDF file from the invoice's stored snapshot.
 
     A cache rebuild, not an amendment: the invoice is rendered from what it
@@ -311,7 +312,7 @@ def regenerate_invoice_pdf(invoice_id: UUID) -> tuple[Response, int]:
 
 
 @invoices_bp.route("/invoices/<uuid:invoice_id>/refresh-letterhead", methods=["POST"])
-def refresh_invoice_letterhead(invoice_id: UUID) -> tuple[Response, int]:
+def refresh_invoice_letterhead(invoice_id: UUID) -> ResponseReturnValue:
     """Re-capture the letterhead from the current profile and client.
 
     Distinct from regenerating: this changes what an issued document says, so
