@@ -4,6 +4,7 @@ import logging
 from uuid import UUID
 
 from flask import Blueprint, jsonify, request
+from flask.typing import ResponseReturnValue
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 
@@ -21,7 +22,7 @@ category_tags_bp = Blueprint("category_tags", __name__)
 
 
 @category_tags_bp.route("/category-tags", methods=["GET"])
-def list_category_tags():
+def list_category_tags() -> ResponseReturnValue:
     """List all category tags."""
     session = db.get_session()
     try:
@@ -36,7 +37,7 @@ def list_category_tags():
 
 
 @category_tags_bp.route("/category-tags", methods=["POST"])
-def create_category_tag():
+def create_category_tag() -> ResponseReturnValue:
     """Create a new category tag."""
     try:
         data = CategoryTagCreate.model_validate(request.get_json())
@@ -66,7 +67,7 @@ def create_category_tag():
 
 
 @category_tags_bp.route("/category-tags/<uuid:tag_id>", methods=["GET"])
-def get_category_tag(tag_id: UUID):
+def get_category_tag(tag_id: UUID) -> ResponseReturnValue:
     """Get a specific category tag by ID."""
     session = db.get_session()
     try:
@@ -80,7 +81,7 @@ def get_category_tag(tag_id: UUID):
 
 
 @category_tags_bp.route("/category-tags/<uuid:tag_id>", methods=["PUT"])
-def update_category_tag(tag_id: UUID):
+def update_category_tag(tag_id: UUID) -> ResponseReturnValue:
     """Update a category tag."""
     try:
         data = CategoryTagUpdate.model_validate(request.get_json())
@@ -114,7 +115,7 @@ def update_category_tag(tag_id: UUID):
 
 
 @category_tags_bp.route("/category-tags/<uuid:tag_id>", methods=["DELETE"])
-def delete_category_tag(tag_id: UUID):
+def delete_category_tag(tag_id: UUID) -> ResponseReturnValue:
     """Delete a category tag."""
     session = db.get_session()
     try:
