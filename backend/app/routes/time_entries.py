@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from flask import Blueprint, jsonify, request
+from flask.typing import ResponseReturnValue
 from pydantic import ValidationError
 
 from app.extensions import db
@@ -58,7 +59,7 @@ def entry_to_response_with_project(entry: TimeEntry) -> dict:
 
 
 @time_entries_bp.route("/time-entries", methods=["GET"])
-def list_time_entries():
+def list_time_entries() -> ResponseReturnValue:
     """List time entries with optional filters."""
     session = db.get_session()
     try:
@@ -107,7 +108,7 @@ def list_time_entries():
 
 
 @time_entries_bp.route("/time-entries", methods=["POST"])
-def create_time_entry():
+def create_time_entry() -> ResponseReturnValue:
     """Create a new time entry (starts a timer if no end_time provided)."""
     try:
         data = TimeEntryCreate.model_validate(request.get_json())
@@ -168,7 +169,7 @@ def create_time_entry():
 
 
 @time_entries_bp.route("/time-entries/active", methods=["GET"])
-def get_active_timer():
+def get_active_timer() -> ResponseReturnValue:
     """Get the currently running time entry."""
     session = db.get_session()
     try:
@@ -183,7 +184,7 @@ def get_active_timer():
 
 
 @time_entries_bp.route("/time-entries/weekly", methods=["GET"])
-def get_weekly_entries():
+def get_weekly_entries() -> ResponseReturnValue:
     """Get time entries grouped by day for a specific week."""
     session = db.get_session()
     try:
@@ -232,7 +233,7 @@ def get_weekly_entries():
 
 
 @time_entries_bp.route("/time-entries/<uuid:entry_id>", methods=["GET"])
-def get_time_entry(entry_id: UUID):
+def get_time_entry(entry_id: UUID) -> ResponseReturnValue:
     """Get a specific time entry by ID."""
     session = db.get_session()
     try:
@@ -245,7 +246,7 @@ def get_time_entry(entry_id: UUID):
 
 
 @time_entries_bp.route("/time-entries/<uuid:entry_id>", methods=["PUT"])
-def update_time_entry(entry_id: UUID):
+def update_time_entry(entry_id: UUID) -> ResponseReturnValue:
     """Update a time entry."""
     try:
         data = TimeEntryUpdate.model_validate(request.get_json())
@@ -296,7 +297,7 @@ def update_time_entry(entry_id: UUID):
 
 
 @time_entries_bp.route("/time-entries/<uuid:entry_id>", methods=["DELETE"])
-def delete_time_entry(entry_id: UUID):
+def delete_time_entry(entry_id: UUID) -> ResponseReturnValue:
     """Delete a time entry."""
     session = db.get_session()
     try:
@@ -316,7 +317,7 @@ def delete_time_entry(entry_id: UUID):
 
 
 @time_entries_bp.route("/time-entries/<uuid:entry_id>/stop", methods=["POST"])
-def stop_time_entry(entry_id: UUID):
+def stop_time_entry(entry_id: UUID) -> ResponseReturnValue:
     """Stop a running timer."""
     session = db.get_session()
     try:
