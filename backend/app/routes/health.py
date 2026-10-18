@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify
+from flask.typing import ResponseReturnValue
 from sqlalchemy import text
 
 from app.extensions import db
@@ -7,7 +8,7 @@ health_bp = Blueprint("health", __name__)
 
 
 @health_bp.route("/health")
-def health_check():
+def health_check() -> ResponseReturnValue:
     """Health check endpoint."""
     health_status = {"status": "healthy", "database": "unknown"}
 
