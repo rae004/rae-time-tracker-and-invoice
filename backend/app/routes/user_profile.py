@@ -3,6 +3,7 @@
 import logging
 
 from flask import Blueprint, jsonify, request
+from flask.typing import ResponseReturnValue
 from pydantic import ValidationError
 
 from app.extensions import db
@@ -51,7 +52,7 @@ def _profile_response(session, profile) -> UserProfileResponse:
 
 
 @user_profile_bp.route("/user-profile", methods=["GET"])
-def get_user_profile():
+def get_user_profile() -> ResponseReturnValue:
     """Get the user profile (creates a placeholder if none exists)."""
     session = db.get_session()
     try:
@@ -63,7 +64,7 @@ def get_user_profile():
 
 
 @user_profile_bp.route("/user-profile", methods=["PUT"])
-def update_user_profile():
+def update_user_profile() -> ResponseReturnValue:
     """Update the user profile."""
     try:
         data = UserProfileUpdate.model_validate(request.get_json())
@@ -92,7 +93,7 @@ def update_user_profile():
 
 
 @user_profile_bp.route("/user-profile", methods=["POST"])
-def create_user_profile():
+def create_user_profile() -> ResponseReturnValue:
     """Create or reset the user profile."""
     try:
         data = UserProfileCreate.model_validate(request.get_json())
