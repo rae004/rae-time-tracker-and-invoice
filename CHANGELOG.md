@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.4.1...v0.4.2) (2026-10-18)
+
+
+### Bug Fixes
+
+* **deps:** patch high-severity CVEs in backend + frontend ([#159](https://github.com/rae004/rae-time-tracker-and-invoice/issues/159)) ([8911a04](https://github.com/rae004/rae-time-tracker-and-invoice/commit/8911a04f9766b135f3fc8600e4d662131c02c54e))
+
 ## [0.4.1](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.4.0...v0.4.1) (2026-09-12)
 
 
