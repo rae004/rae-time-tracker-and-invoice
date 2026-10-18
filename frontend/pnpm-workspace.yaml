@@ -5,16 +5,22 @@
 # published advisory that its direct parent has not yet released a fix for;
 # drop an entry once every parent depends on a patched range on its own.
 overrides:
-  # GHSA-3jxr-9vmj-r5cp / brace-expansion DoS via unbounded expansion length.
-  # Reached through eslint > minimatch and eslint > @eslint/config-array.
-  brace-expansion@<5.0.8: ">=5.0.8"
+  # GHSA-6j4f-fj2g-mc7p / brace-expansion DoS via uncontrolled recursion.
+  # Supersedes the earlier GHSA-3jxr-9vmj-r5cp pin. Reached through eslint
+  # > minimatch and eslint > @eslint/config-array.
+  brace-expansion@<5.0.11: ">=5.0.11"
   # PostCSS path traversal in sourceMappingURL auto-loading.
   # Reached through vite, @tailwindcss/postcss, and vitest.
   postcss@<8.5.18: ">=8.5.18"
-  # undici cross-user information disclosure. Reached through
-  # @vitest/coverage-v8 > vitest > jsdom. Held to the 7.x line because
-  # that is the range jsdom depends on.
-  undici@<7.29.0: ">=7.29.0 <8"
+  # GHSA-68fv-2mgg-jv7q / source-map-js event-loop DoS via indexed section
+  # offsets. Reached through @tailwindcss/postcss > postcss and vite >
+  # postcss (and vitest > vite).
+  source-map-js@<1.2.2: ">=1.2.2"
+  # undici three high-severity CVEs (DoS via unrequested continuation,
+  # TLS cert validation bypass, cross-origin cache poisoning). The tree
+  # has moved past the 7.x line, so we now pin on the 8.x line at the
+  # patched floor. Reached through @vitest/coverage-v8 > vitest > jsdom.
+  undici@<8.10.2: ">=8.10.2"
   # nanoid infinite loop with custom generators. Reached through
   # @tailwindcss/postcss > postcss. Held to 3.x, the range postcss uses.
   nanoid@<3.3.17: ">=3.3.17 <4"

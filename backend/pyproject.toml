@@ -22,7 +22,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
-    "pypdf>=6.16.1",
+    "pypdf>=6.19.0",
 ]
 
 [dependency-groups]
@@ -31,7 +31,15 @@ dev = [
     "pytest-cov>=4.0.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
-    "pypdf>=6.16.1",
+    "pypdf>=6.19.0",
+]
+
+# Security overrides for transitive deps flagged by pip-audit. Werkzeug
+# comes in via Flask; pinning it here forces uv to resolve to the
+# patched 3.1.9+ regardless of Flask's own range.
+[tool.uv]
+override-dependencies = [
+    "werkzeug>=3.1.9",
 ]
 
 [tool.pytest.ini_options]
