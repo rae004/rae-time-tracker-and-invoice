@@ -4,6 +4,7 @@ import logging
 from datetime import UTC, datetime
 
 from flask import Blueprint, Response, jsonify, request
+from flask.typing import ResponseReturnValue
 from pydantic import ValidationError
 
 from app.extensions import db
@@ -26,7 +27,7 @@ data_management_bp = Blueprint("data_management", __name__)
 
 
 @data_management_bp.route("/data/export", methods=["GET"])
-def export_data():
+def export_data() -> ResponseReturnValue:
     """Export all data as a downloadable JSON file."""
     session = db.get_session()
     try:
@@ -45,7 +46,7 @@ def export_data():
 
 
 @data_management_bp.route("/data/import", methods=["POST"])
-def import_data():
+def import_data() -> ResponseReturnValue:
     """Import a previously exported JSON payload (append-only, skip duplicates)."""
     try:
         payload = DataImport.model_validate(request.get_json())
@@ -65,7 +66,7 @@ def import_data():
 
 
 @data_management_bp.route("/data/reset", methods=["DELETE"])
-def reset_data():
+def reset_data() -> ResponseReturnValue:
     """Delete every record. Requires X-Confirm-Reset: DELETE-ALL-DATA header."""
     if request.headers.get(RESET_CONFIRM_HEADER) != RESET_CONFIRM_VALUE:
         return jsonify(
