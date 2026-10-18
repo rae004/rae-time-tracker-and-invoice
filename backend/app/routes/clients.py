@@ -4,6 +4,7 @@ import logging
 from uuid import UUID
 
 from flask import Blueprint, jsonify, request
+from flask.typing import ResponseReturnValue
 from pydantic import ValidationError
 
 from app.extensions import db
@@ -15,7 +16,7 @@ clients_bp = Blueprint("clients", __name__)
 
 
 @clients_bp.route("/clients", methods=["GET"])
-def list_clients():
+def list_clients() -> ResponseReturnValue:
     """List all clients."""
     session = db.get_session()
     try:
@@ -30,7 +31,7 @@ def list_clients():
 
 
 @clients_bp.route("/clients", methods=["POST"])
-def create_client():
+def create_client() -> ResponseReturnValue:
     """Create a new client."""
     try:
         data = ClientCreate.model_validate(request.get_json())
@@ -64,7 +65,7 @@ def create_client():
 
 
 @clients_bp.route("/clients/<uuid:client_id>", methods=["GET"])
-def get_client(client_id: UUID):
+def get_client(client_id: UUID) -> ResponseReturnValue:
     """Get a specific client by ID."""
     session = db.get_session()
     try:
@@ -78,7 +79,7 @@ def get_client(client_id: UUID):
 
 
 @clients_bp.route("/clients/<uuid:client_id>", methods=["PUT"])
-def update_client(client_id: UUID):
+def update_client(client_id: UUID) -> ResponseReturnValue:
     """Update a client."""
     try:
         data = ClientUpdate.model_validate(request.get_json())
@@ -109,7 +110,7 @@ def update_client(client_id: UUID):
 
 
 @clients_bp.route("/clients/<uuid:client_id>", methods=["DELETE"])
-def delete_client(client_id: UUID):
+def delete_client(client_id: UUID) -> ResponseReturnValue:
     """Delete a client."""
     session = db.get_session()
     try:
