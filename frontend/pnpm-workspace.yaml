@@ -24,3 +24,6 @@ overrides:
   # nanoid infinite loop with custom generators. Reached through
   # @tailwindcss/postcss > postcss. Held to 3.x, the range postcss uses.
   nanoid@<3.3.17: ">=3.3.17 <4"
+  # GHSA-mrhx-c7xc-m3w5 / zod memory exhaustion validating oversized input.
+  # Reached through eslint-plugin-react-hooks (and its zod-validation-error).
+  zod@<4.6.6: ">=4.6.6 <5"
