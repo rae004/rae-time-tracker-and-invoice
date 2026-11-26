@@ -1,0 +1,9 @@
+{
+  "required_status_checks": [
+    "backend-tests",
+    "frontend-lint",
+    "frontend-tests",
+    "Frontend Dependency Audit",
+    "Backend Dependency Audit"
+  ]
+}
