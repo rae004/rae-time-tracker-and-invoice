@@ -22,7 +22,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
-    "pypdf>=6.19.0",
+    "pypdf>=6.21.4",
 ]
 
 [dependency-groups]
@@ -31,15 +31,20 @@ dev = [
     "pytest-cov>=4.0.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
-    "pypdf>=6.19.0",
+    "pypdf>=6.21.4",
 ]
 
 # Security overrides for transitive deps flagged by pip-audit. Werkzeug
 # comes in via Flask; pinning it here forces uv to resolve to the
-# patched 3.1.9+ regardless of Flask's own range.
+# patched 3.1.9+ regardless of Flask's own range. Pillow and Brotli come
+# in via WeasyPrint (Brotli through fonttools[woff]); dnspython via
+# pydantic[email] > email-validator.
 [tool.uv]
 override-dependencies = [
     "werkzeug>=3.1.9",
+    "pillow>=13.0.0",
+    "brotli>=1.2.1",
+    "dnspython>=2.9.2",
 ]
 
 [tool.pytest.ini_options]
