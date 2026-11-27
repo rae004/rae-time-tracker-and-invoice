@@ -9,6 +9,7 @@ Everything else about invoice rendering is covered without WeasyPrint in
 test_invoice_letterhead.py.
 """
 
+import importlib
 from datetime import date
 from decimal import Decimal
 
@@ -19,7 +20,7 @@ from app.models.invoice import InvoiceStatus
 from app.services.pdf_service import generate_invoice_pdf
 
 try:
-    import weasyprint  # noqa: F401
+    importlib.import_module("weasyprint")
 except Exception as exc:  # pragma: no cover - depends on the host
     # Deliberately not pytest.importorskip: when the GTK libraries are absent
     # WeasyPrint raises OSError ("cannot load library 'libgobject-2.0-0'"),
