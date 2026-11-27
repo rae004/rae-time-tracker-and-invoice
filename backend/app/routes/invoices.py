@@ -325,16 +325,20 @@ def refresh_invoice_letterhead(invoice_id: UUID) -> ResponseReturnValue:
         if not invoice:
             return jsonify({"error": "Invoice not found"}), 404
 
-        invoice_service.refresh_letterhead(session, invoice)
+        try:
+            invoice_service.refresh_letterhead(session, invoice)
+        except ValueError as e:
+            # Our own validation message (e.g. the invoice is not finalized).
+            # Caught here only, so a ValueError from PDF generation below is
+            # logged as a 500 and its text is not sent to the client.
+            session.rollback()
+            return jsonify({"error": str(e)}), 400
         invoice.pdf_path = generate_invoice_pdf(session, invoice)
         session.commit()
 
         invoice = invoice_service.get_invoice_with_details(session, invoice.id)
         response = InvoiceResponse.model_validate(invoice)
         return jsonify(response.model_dump(mode="json")), 200
-    except ValueError as e:
-        session.rollback()
-        return jsonify({"error": str(e)}), 400
     except Exception:
         session.rollback()
         logger.exception("Failed to refresh invoice letterhead")

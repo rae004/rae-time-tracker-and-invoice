@@ -297,7 +297,7 @@ export function CreateInvoice() {
                   <button
                     className="btn btn-primary"
                     onClick={() => handleCreate()}
-                    disabled={!preview || preview.line_items.length === 0 || createInvoice.isPending}
+                    disabled={preview.line_items.length === 0 || createInvoice.isPending}
                   >
                     {createInvoice.isPending ? (
                       <span className="loading loading-spinner loading-sm"></span>
