@@ -27,3 +27,8 @@ overrides:
   # GHSA-mrhx-c7xc-m3w5 / zod memory exhaustion validating oversized input.
   # Reached through eslint-plugin-react-hooks (and its zod-validation-error).
   zod@<4.6.6: ">=4.6.6 <5"
+  # @babel/core arbitrary file read through a sourceMappingURL comment
+  # (Dependabot alert #65, fixed in 7.29.6). Reached through
+  # eslint-plugin-react-hooks, so lint tooling only. Held to 7.x, the range
+  # that parent allows; Dependabot cannot raise it because it tries 8.x.
+  "@babel/core@<7.29.6": ">=7.29.6 <8"
