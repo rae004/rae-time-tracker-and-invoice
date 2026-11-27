@@ -27,9 +27,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock .python-version ./
 
 # Install dependencies. --frozen installs the lock as committed without
-# re-resolving. Deliberately not --locked: release-please bumps the version in
-# pyproject.toml without touching uv.lock, and --locked turns that routine
-# drift into a hard build failure for everyone until the lock is re-synced.
+# re-resolving.
 RUN uv sync --frozen --no-install-project --no-dev
 
 # Copy application code

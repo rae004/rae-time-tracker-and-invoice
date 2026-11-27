@@ -4,6 +4,7 @@
     "frontend-lint",
     "frontend-tests",
     "Frontend Dependency Audit",
-    "Backend Dependency Audit"
+    "Backend Dependency Audit",
+    "title / Conventional title"
   ]
 }

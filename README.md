@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/ci.yml/badge.svg)](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/rae004/rae-time-tracker-and-invoice/branch/main/graph/badge.svg)](https://codecov.io/gh/rae004/rae-time-tracker-and-invoice)
-[![Release](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/release-please.yml/badge.svg)](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/release-please.yml)
-[![Version](https://img.shields.io/github/package-json/v/rae004/rae-time-tracker-and-invoice?filename=frontend%2Fpackage.json&color=blue&label=version)](./CHANGELOG.md)
+[![Release](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/release.yml/badge.svg)](https://github.com/rae004/rae-time-tracker-and-invoice/actions/workflows/release.yml)
+[![Version](https://img.shields.io/github/v/release/rae004/rae-time-tracker-and-invoice?color=blue&label=version)](https://github.com/rae004/rae-time-tracker-and-invoice/releases)
 [![Dependabot](https://img.shields.io/badge/Dependabot-enabled-025E8C?logo=dependabot&logoColor=white)](./.github/dependabot.yml)
 [![License](https://img.shields.io/github/license/rae004/rae-time-tracker-and-invoice?color=blue)](./LICENSE)
 [![Python](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Frae004%2Frae-time-tracker-and-invoice%2Fmain%2Fbackend%2Fpyproject.toml&logo=python&logoColor=white&label=Python&color=3776AB)](https://www.python.org/)
@@ -270,6 +270,17 @@ pnpm test:coverage
 | GET | `/api/user-profile` | Get user profile |
 | PUT | `/api/user-profile` | Update user profile |
 | POST | `/api/user-profile` | Create/reset user profile |
+
+## Releases
+
+Every PR is squash-merged with its title as the commit message, and the shared release workflow in [`rae004/.github`](https://github.com/rae004/.github#releases) tags that commit directly, based on [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` → minor bump
+- `fix:`, `perf:` → patch bump
+- `feat!:` or `BREAKING CHANGE:` → minor bump while on 0.x (1.0.0 is only cut by hand)
+- `chore:`, `docs:`, `test:`, `ci:`, `style:`, `refactor:`, `build:` → no release
+
+There is no release PR and no release commit. The version lives in git tags only: `frontend/package.json` and `backend/pyproject.toml` carry a fixed `0.0.0` placeholder, and release notes are on the [Releases page](https://github.com/rae004/rae-time-tracker-and-invoice/releases). A required check rejects PR titles that are not Conventional Commits.
 
 ## Repo settings
 

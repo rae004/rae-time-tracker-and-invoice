@@ -870,7 +870,7 @@ wheels = [
 
 [[package]]
 name = "rae-time-tracker-api"
-version = "0.4.3"
+version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "alembic" },
