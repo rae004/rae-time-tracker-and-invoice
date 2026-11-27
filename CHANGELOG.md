@@ -1,5 +1,9 @@
 # Changelog
 
+Releases after 0.4.3 are tagged directly on the merged commit and documented on the
+[GitHub Releases page](https://github.com/rae004/rae-time-tracker-and-invoice/releases); this file is
+no longer updated.
+
 ## [0.4.3](https://github.com/rae004/rae-time-tracker-and-invoice/compare/v0.4.2...v0.4.3) (2026-11-26)
 
 
