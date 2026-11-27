@@ -8,6 +8,12 @@ updates:
     open-pull-requests-limit: 8
     cooldown:
       default-days: 7
+    ignore:
+      # typescript-eslint does not run on TypeScript 7 yet, so the bump fails
+      # lint. Remove this once typescript-eslint supports it:
+      # https://github.com/typescript-eslint/typescript-eslint/issues/10940
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     # The PR title becomes the squash commit, and release.yml reads its type.
     # A bump to a runtime dependency is a `fix`, so it cuts a patch release;
     # a dev-only bump is a `chore` and releases nothing.
